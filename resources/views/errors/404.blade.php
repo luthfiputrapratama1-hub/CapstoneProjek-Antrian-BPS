@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Halaman Tidak Ditemukan | PST BPS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 border border-slate-200 text-center">
+        <div class="w-20 h-20 bg-blue-100 text-blue-900 rounded-3xl flex items-center justify-center text-4xl font-black mx-auto mb-6 shadow-inner">
+            🔍
+        </div>
+        <h1 class="text-5xl font-black text-slate-900 tracking-tight">404</h1>
+        <h2 class="text-xl font-bold text-slate-800 mt-2">Halaman Tidak Ditemukan</h2>
+        <p class="text-slate-500 text-sm mt-3 leading-relaxed">
+            Mohon maaf, tautan atau halaman yang Anda tuju tidak ditemukan atau telah dipindahkan ke alamat lain.
+        </p>
+
+        <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col space-y-3">
+            <a href="{{ route('home') }}"
+                class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition text-sm shadow">
+                Kembali ke Beranda Utama
+            </a>
+            @auth
+                @if(Auth::user()->role === 'admin')
+                    <a href="{{ route('admin.dashboard') }}"
+                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition text-sm shadow">
+                        Buka Dashboard Admin
+                    </a>
+                @else
+                    <a href="{{ route('counter.index') }}"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition text-sm shadow">
+                        Buka Meja Kerja Loket
+                    </a>
+                @endif
+            @endauth
+            <a href="{{ route('kiosk.index') }}"
+                class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition text-sm">
+                Anjungan Kiosk Tiket
+            </a>
+        </div>
+    </div>
+</body>
+</html>
