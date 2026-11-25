@@ -82,4 +82,25 @@ class CounterOperationsTest extends TestCase
         $this->assertNotNull($queue->wait_duration_seconds);
         $this->assertNotNull($queue->serve_duration_seconds);
     }
+
+    public function test_loket_page_uses_workspace_layout_non_blocking_ux_and_accessible_error_summary(): void
+    {
+        $this->actingAs($this->petugas);
+
+        $response = $this->get('/loket');
+        $response->assertStatus(200);
+
+        $html = $response->getContent();
+        $this->assertStringNotContainsString('cdn.tailwindcss.com', $html);
+        $this->assertStringNotContainsString('📢', $html);
+        $this->assertStringNotContainsString('✍️', $html);
+        $this->assertStringNotContainsString('⚠️', $html);
+        $this->assertStringNotContainsString('alert(', $html);
+        $this->assertStringNotContainsString('confirm(', $html);
+        $this->assertStringContainsString(route('password.change'), $html);
+        $this->assertStringContainsString('id="guestbook-error-summary"', $html);
+        $this->assertStringContainsString('1. Panggil', $html);
+        $this->assertStringContainsString('2. Layani &amp; Buku Tamu', $html);
+        $this->assertStringContainsString('3. Selesai', $html);
+    }
 }

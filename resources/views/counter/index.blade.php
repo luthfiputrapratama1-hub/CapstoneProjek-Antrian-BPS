@@ -1,430 +1,529 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Operasional Loket - PST BPS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-100 min-h-screen flex flex-col justify-between selection:bg-none">
-    <!-- Navbar Petugas -->
-    <header class="bg-blue-900 text-white shadow-md py-4 px-8 flex justify-between items-center">
-        <div class="flex items-center space-x-4">
-            <a href="{{ route('home') }}" title="Kembali ke Beranda Portal PST"
-                class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-900 font-black text-xl shadow hover:scale-105 transition-transform">
-                BPS
-            </a>
-            <div>
-                <h1 class="text-xl font-bold tracking-wide">Meja Kerja Pelayanan Loket Terpadu</h1>
-                <p class="text-xs text-blue-200">Badan Pusat Statistik Kota Tasikmalaya</p>
-            </div>
-        </div>
+@extends('layouts.workspace', [
+    'activeNav' => 'loket',
+    'pageTitle' => 'Meja Kerja Pelayanan Loket',
+    'pageSubtitle' => 'Badan Pusat Statistik Kota Tasikmalaya',
+])
 
-        <div class="flex items-center space-x-6">
-            @if(Auth::user()->role === 'admin')
-                <a href="{{ route('admin.dashboard') }}"
-                    class="bg-blue-950 hover:bg-blue-800 text-blue-200 hover:text-white border border-blue-700 text-xs font-bold px-3 py-1.5 rounded-lg transition shadow">
-                    ← Kembali ke Dashboard Admin
-                </a>
-            @endif
-            <!-- Counter Selector -->
-            <form action="{{ route('counter.index') }}" method="GET" class="flex items-center space-x-2">
-                <label for="counter_id" class="text-xs font-semibold text-blue-200">Loket Bertugas:</label>
+@section('content')
+    @php
+        $status = $activeQueue?->status;
+        $isServing = $status === 'serving';
+        $isCalling = $status === 'calling';
+        $stepState = $isServing ? 2 : ($isCalling ? 1 : 0);
+    @endphp
+
+    <div class="space-y-6">
+        {{-- Counter Toolbar & 3-Step Workflow Indicator --}}
+        <section class="bg-white rounded-xl border border-[#DCE3EC] p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <form action="{{ route('counter.index') }}" method="GET" class="flex flex-wrap items-center gap-3">
+                <label for="counter_id" class="text-xs font-semibold uppercase tracking-wider text-[#475569]">Loket Bertugas:</label>
                 <select name="counter_id" id="counter_id" onchange="this.form.submit()"
-                    class="bg-blue-950 text-white border border-blue-700 text-xs font-bold rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                        class="rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-sm font-semibold text-[#0F172A]">
                     @foreach($counters as $c)
                         <option value="{{ $c->id }}" {{ $selectedCounter?->id == $c->id ? 'selected' : '' }}>
                             {{ $c->name }}
                         </option>
                     @endforeach
                 </select>
+                <x-badge tone="cobalt" class="tabular-nums-strict">{{ $waitingCount }} Menunggu</x-badge>
             </form>
 
-            <div class="border-l border-blue-800 pl-6 flex items-center space-x-3">
-                <div class="text-right">
-                    <div class="text-sm font-bold text-white">{{ Auth::user()->name }}</div>
-                    <div class="text-[11px] text-emerald-300 font-semibold uppercase">{{ Auth::user()->role }}</div>
-                </div>
-                <a href="{{ route('password.change') }}" class="bg-blue-800 hover:bg-blue-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold transition shadow">
-                    Kata Sandi
-                </a>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="bg-red-700/80 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition shadow">
-                        Keluar
-                    </button>
-                </form>
-            </div>
-        </div>
-    </header>
+            <nav aria-label="Tahapan Layanan Loket">
+                <ol class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                    <li class="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 {{ $stepState === 0 ? 'border-[#0B4F9C] bg-blue-50 text-[#0B4F9C]' : 'border-[#DCE3EC] bg-[#F8FAFC] text-[#475569]' }}" @if($stepState === 0) aria-current="step" @endif>
+                        <span>1. Panggil</span>
+                    </li>
+                    <li aria-hidden="true" class="text-[#64748B]">→</li>
+                    <li class="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 {{ $stepState === 1 || $stepState === 2 ? 'border-[#0B4F9C] bg-blue-50 text-[#0B4F9C]' : 'border-[#DCE3EC] bg-[#F8FAFC] text-[#475569]' }}" @if($stepState === 1 || $stepState === 2) aria-current="step" @endif>
+                        <span>2. Layani &amp; Buku Tamu</span>
+                    </li>
+                    <li aria-hidden="true" class="text-[#64748B]">→</li>
+                    <li class="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 border-[#DCE3EC] bg-[#F8FAFC] text-[#475569]">
+                        <span>3. Selesai</span>
+                    </li>
+                </ol>
+            </nav>
+        </section>
 
-    <!-- Main Workspace -->
-    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <!-- Kolom Kiri: Pengendali Antrean Loket -->
-        <div class="space-y-6">
-            <!-- Kartu Info Loket -->
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Kategori Dilayani</span>
-                    <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                        {{ $waitingCount }} Menunggu
-                    </span>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    @forelse($selectedCounter?->services ?? [] as $srv)
-                        <span class="px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 flex items-center space-x-1.5">
-                            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                            <span>{{ $srv->name }} ({{ $srv->code_prefix }})</span>
-                        </span>
-                    @empty
-                        <span class="text-xs text-red-500 italic">Loket belum memiliki penugasan layanan</span>
-                    @endforelse
-                </div>
-            </div>
-
-            <!-- Kartu Status Antrean Aktif -->
-            <div class="bg-white rounded-3xl shadow-md border-2 border-slate-200 p-6 text-center">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Antrean Sedang Ditangani</span>
-                <div id="active-ticket-code" class="text-6xl font-mono font-black text-blue-900 my-4">
-                    {{ $activeQueue?->ticket_code ?? '---' }}
-                </div>
-                <div id="active-service-name" class="text-sm font-bold text-slate-700">
-                    {{ $activeQueue?->service?->name ?? 'Belum ada antrean yang dipanggil' }}
-                </div>
-                <div class="mt-3 space-y-1">
-                    <span id="active-status-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase {{ $activeQueue ? ($activeQueue->status === 'serving' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800') : 'bg-slate-100 text-slate-500' }}">
-                        {{ $activeQueue ? ($activeQueue->status === 'serving' ? 'Sedang Dilayani' : 'Sedang Dipanggil') : 'Kosong' }}
-                    </span>
-                    @if($activeQueue && $activeQueue->status === 'calling')
-                        <div class="text-[11px] font-semibold text-slate-500">
-                            Panggilan Ulang: <span class="font-bold text-blue-900">{{ $activeQueue->recall_count }}</span> / 3
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Tombol Aksi Loket -->
-                <div class="mt-8 space-y-3">
-                    <button type="button" onclick="callNextQueue()" {{ $activeQueue ? 'disabled' : '' }}
-                        id="btn-call-next"
-                        class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:pointer-events-none text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-emerald-900/20 active:scale-[0.99] transition flex items-center justify-center space-x-2">
-                        <span>📢</span>
-                        <span>PANGGIL BERIKUTNYA</span>
-                    </button>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <button type="button" onclick="recallQueue()" {{ (!$activeQueue || $activeQueue->status !== 'calling' || $activeQueue->recall_count >= 3) ? 'disabled' : '' }}
-                            id="btn-recall"
-                            class="bg-blue-800 hover:bg-blue-900 disabled:opacity-40 disabled:pointer-events-none text-white font-bold py-2.5 rounded-xl shadow transition text-sm">
-                            Panggil Ulang ({{ $activeQueue?->recall_count ?? 0 }}/3)
-                        </button>
-                        <button type="button" onclick="skipQueue()" {{ (!$activeQueue || $activeQueue->status !== 'calling' || !$canSkip) ? 'disabled' : '' }}
-                            id="btn-skip"
-                            title="{{ !$canSkip ? 'Tombol aktif setelah pemanggilan ulang ke-3' : 'Lewati antrean' }}"
-                            class="bg-slate-200 hover:bg-red-100 hover:text-red-700 disabled:opacity-40 disabled:pointer-events-none text-slate-700 font-bold py-2.5 rounded-xl transition text-sm border border-slate-300">
-                            Lewati (Skip)
-                        </button>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            {{-- Left Column (1/3): Queue Control --}}
+            <div class="space-y-5">
+                {{-- Assigned Services --}}
+                <section class="bg-white rounded-xl border border-[#DCE3EC] p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-xs font-semibold uppercase tracking-wider text-[#475569]">Kategori Layanan Loket</h2>
+                        <span class="text-xs font-semibold text-[#0F172A]">{{ $selectedCounter?->name }}</span>
                     </div>
-
-                    @if($activeQueue && $activeQueue->status === 'calling' && !$canSkip)
-                        <p class="text-[11px] text-amber-700 bg-amber-50 rounded-lg p-1.5 border border-amber-200">
-                            ⚠️ Tombol Lewati aktif setelah panggilan ke-3
-                        </p>
-                    @endif
-
-                    <button type="button" onclick="startServing()" {{ (!$activeQueue || $activeQueue->status !== 'calling') ? 'disabled' : '' }}
-                        id="btn-start-serve"
-                        class="w-full bg-indigo-800 hover:bg-indigo-900 disabled:opacity-40 disabled:pointer-events-none text-white font-bold py-3 rounded-xl shadow transition text-sm flex items-center justify-center space-x-2">
-                        <span>✍️</span>
-                        <span>Mulai Melayani (Buka Buku Tamu)</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Kartu Antrean Dilewati (Skipped) Hari Ini -->
-            @if(isset($skippedQueues) && $skippedQueues->count() > 0)
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Antrean Terlewat Hari Ini</span>
-                        <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
-                            {{ $skippedQueues->count() }}
-                        </span>
+                    <div class="flex flex-wrap gap-1.5">
+                        @forelse($selectedCounter?->services ?? [] as $srv)
+                            <x-badge tone="neutral">
+                                <span class="font-mono font-bold text-[#0B4F9C]">{{ $srv->code_prefix }}</span>
+                                <span>{{ $srv->name }}</span>
+                            </x-badge>
+                        @empty
+                            <span class="text-xs text-red-700">Loket belum memiliki penugasan layanan.</span>
+                        @endforelse
                     </div>
-                    <p class="text-[11px] text-slate-500 mb-3">Dapat dipanggil kembali sekali ke urutan paling depan:</p>
-                    <div class="space-y-2 max-h-48 overflow-y-auto">
-                        @foreach($skippedQueues as $sq)
-                            <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
-                                <div>
-                                    <span class="font-mono font-bold text-blue-900">{{ $sq->ticket_code }}</span>
-                                    <div class="text-[10px] text-slate-500">{{ $sq->service?->name }}</div>
-                                </div>
-                                <button type="button" onclick="recallSkippedQueue({{ $sq->id }}, '{{ $sq->ticket_code }}')"
-                                    class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-2.5 py-1 rounded-lg text-[11px] transition shadow">
-                                    Panggil Kembali
-                                </button>
+                </section>
+
+                {{-- Active Ticket Card --}}
+                <section class="bg-white rounded-xl border border-[#DCE3EC] p-6 text-center">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Antrean Sedang Ditangani</span>
+                    <div id="active-ticket-code" class="text-5xl font-mono font-bold text-[#0A2540] my-3 tracking-wider tabular-nums-strict">
+                        {{ $activeQueue?->ticket_code ?? '---' }}
+                    </div>
+                    <div id="active-service-name" class="text-sm font-semibold text-[#0F172A]">
+                        {{ $activeQueue?->service?->name ?? 'Belum ada antrean yang dipanggil' }}
+                    </div>
+                    <div class="mt-3 flex flex-col items-center gap-1.5">
+                        <span id="active-status-badge">
+                            @if($isServing)
+                                <x-badge tone="green">Sedang Dilayani</x-badge>
+                            @elseif($isCalling)
+                                <x-badge tone="orange">Sedang Dipanggil</x-badge>
+                            @else
+                                <x-badge tone="neutral">Kosong</x-badge>
+                            @endif
+                        </span>
+                        @if($isCalling)
+                            <div class="text-xs font-medium text-[#475569] tabular-nums-strict">
+                                Panggilan Ulang: <strong class="text-[#0F172A]">{{ $activeQueue->recall_count }} / 3</strong>
                             </div>
-                        @endforeach
+                        @endif
                     </div>
-                </div>
-            @endif
-        </div>
 
-        <!-- Kolom Kanan: Formulir Buku Tamu Digital Terpadu (2/3 Lebar) -->
-        <div class="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
-            <div class="flex justify-between items-center border-b border-slate-200 pb-4 mb-6">
-                <div>
-                    <h2 class="text-xl font-black text-slate-800">Formulir Buku Tamu Digital PST</h2>
-                    <p class="text-slate-500 text-sm mt-0.5">Wajib diisi dan disimpan sebelum antrean ditandai selesai</p>
-                </div>
-                <span class="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-600">
-                    SKF-05 BPS Terpadu
-                </span>
+                    <div class="mt-6 space-y-2.5">
+                        <button type="button"
+                                id="btn-call-next"
+                                {{ $activeQueue ? 'disabled' : '' }}
+                                class="w-full inline-flex items-center justify-center gap-2 rounded-md bg-[#15803D] hover:bg-emerald-800 disabled:opacity-40 disabled:pointer-events-none px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition-colors">
+                            <x-icon name="megaphone" class="w-4 h-4" />
+                            <span>Panggil Berikutnya</span>
+                        </button>
+
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <button type="button"
+                                    id="btn-recall"
+                                    {{ (!$isCalling || $activeQueue->recall_count >= 3) ? 'disabled' : '' }}
+                                    class="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] disabled:opacity-40 disabled:pointer-events-none px-3 py-2.5 text-xs font-semibold text-white tabular-nums-strict transition-colors">
+                                <x-icon name="refresh" class="w-3.5 h-3.5" />
+                                <span>Ulang ({{ $activeQueue?->recall_count ?? 0 }}/3)</span>
+                            </button>
+
+                            <button type="button"
+                                    id="btn-skip"
+                                    {{ (!$isCalling || !$canSkip) ? 'disabled' : '' }}
+                                    title="{{ !$canSkip ? 'Tombol aktif setelah pemanggilan ulang ke-3' : 'Lewati antrean' }}"
+                                    class="inline-flex items-center justify-center gap-1.5 rounded-md border border-[#CBD5E1] bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300 disabled:opacity-40 disabled:pointer-events-none px-3 py-2.5 text-xs font-semibold text-[#334155] transition-colors">
+                                <span>Lewati (Skip)</span>
+                            </button>
+                        </div>
+
+                        @if($isCalling && !$canSkip)
+                            <p class="flex items-center justify-center gap-1.5 rounded-md border border-orange-200 bg-orange-50 px-3 py-1.5 text-[11px] font-medium text-[#C2410C]">
+                                <x-icon name="warning" class="w-3.5 h-3.5 shrink-0" />
+                                <span>Tombol Lewati aktif setelah panggilan ke-3</span>
+                            </p>
+                        @endif
+
+                        <button type="button"
+                                id="btn-start-serve"
+                                {{ !$isCalling ? 'disabled' : '' }}
+                                class="w-full inline-flex items-center justify-center gap-2 rounded-md bg-[#0A2540] hover:bg-[#0F172A] disabled:opacity-40 disabled:pointer-events-none px-4 py-2.5 text-xs font-bold text-white transition-colors">
+                            <x-icon name="edit" class="w-4 h-4" />
+                            <span>Mulai Melayani (Buka Buku Tamu)</span>
+                        </button>
+                    </div>
+                </section>
+
+                {{-- Skipped Queues Today --}}
+                @if(isset($skippedQueues) && $skippedQueues->count() > 0)
+                    <section class="bg-white rounded-xl border border-[#DCE3EC] p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="text-xs font-semibold uppercase tracking-wider text-[#475569]">Antrean Terlewat Hari Ini</h2>
+                            <x-badge tone="orange" class="tabular-nums-strict">{{ $skippedQueues->count() }}</x-badge>
+                        </div>
+                        <p class="text-[11px] text-[#64748B] mb-3">Dapat dipanggil kembali satu kali ke urutan paling depan:</p>
+                        <div class="space-y-2 max-h-52 overflow-y-auto">
+                            @foreach($skippedQueues as $sq)
+                                <div class="flex items-center justify-between gap-2 rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] px-3 py-2 text-xs">
+                                    <div class="min-w-0">
+                                        <span class="font-mono font-bold text-[#0A2540] tabular-nums-strict">{{ $sq->ticket_code }}</span>
+                                        <div class="text-[11px] text-[#475569] truncate">{{ $sq->service?->name }}</div>
+                                    </div>
+                                    <button type="button"
+                                            data-recall-skipped-id="{{ $sq->id }}"
+                                            data-recall-skipped-code="{{ $sq->ticket_code }}"
+                                            class="btn-recall-skipped shrink-0 rounded-md bg-[#C2410C] hover:bg-orange-800 px-2.5 py-1 text-[11px] font-semibold text-white">
+                                        Panggil Kembali
+                                    </button>
+                                </div>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
             </div>
 
-            <form id="form-guestbook" onsubmit="submitComplete(event)" class="space-y-6">
-                <input type="hidden" id="form-queue-id" value="{{ $activeQueue?->id ?? '' }}">
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {{-- Right Column (2/3): Guest Book Form --}}
+            <section class="lg:col-span-2 bg-white rounded-xl border border-[#DCE3EC] p-6 sm:p-7" aria-labelledby="guestbook-heading">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#DCE3EC] pb-4 mb-5">
                     <div>
-                        <label for="full_name" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                            Nama Lengkap Pengunjung <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" id="full_name" required {{ (!$activeQueue || $activeQueue->status !== 'serving') ? 'disabled' : '' }}
-                            placeholder="Contoh: Dedi Mulyadi"
-                            value="{{ $activeQueue?->guestBook?->full_name ?? '' }}"
-                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-slate-50 disabled:text-slate-400 text-sm">
+                        <h2 id="guestbook-heading" class="text-lg font-bold text-[#0F172A]">Formulir Buku Tamu Digital PST</h2>
+                        <p class="text-xs text-[#475569] mt-0.5">Wajib diisi dan disimpan saat melayani pengunjung sebelum menyelesaikan antrean</p>
+                    </div>
+                    <x-badge tone="neutral">SKF-05 BPS Terpadu</x-badge>
+                </div>
+
+                {{-- Focusable Validation Error Summary --}}
+                <div id="guestbook-error-summary"
+                     role="alert"
+                     tabindex="-1"
+                     class="hidden mb-5 rounded-lg border border-red-300 bg-red-50 p-4 text-xs text-red-900">
+                    <div class="flex items-center gap-2 font-bold">
+                        <x-icon name="warning" class="w-4 h-4 text-red-700" />
+                        <span>Periksa kembali isian formulir buku tamu:</span>
+                    </div>
+                    <ul data-error-list class="mt-2 list-disc list-inside space-y-1"></ul>
+                </div>
+
+                <form id="form-guestbook" class="space-y-5" novalidate>
+                    <input type="hidden" id="form-queue-id" value="{{ $activeQueue?->id ?? '' }}">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="full_name" class="block text-xs font-semibold text-[#0F172A] mb-1.5">
+                                Nama Lengkap Pengunjung <span class="text-red-600" aria-hidden="true">*</span>
+                            </label>
+                            <input type="text"
+                                   id="full_name"
+                                   name="full_name"
+                                   required
+                                   aria-invalid="false"
+                                   data-error="full_name-error"
+                                   {{ !$isServing ? 'disabled' : '' }}
+                                   placeholder="Contoh: Dedi Mulyadi"
+                                   value="{{ $activeQueue?->guestBook?->full_name ?? '' }}"
+                                   class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2.5 text-sm text-[#0F172A] disabled:bg-[#F4F6F9] disabled:text-[#64748B]">
+                            <p id="full_name-error" class="field-error-text"></p>
+                        </div>
+
+                        <div>
+                            <label for="phone_number" class="block text-xs font-semibold text-[#0F172A] mb-1.5">
+                                Nomor WhatsApp / HP <span class="text-red-600" aria-hidden="true">*</span>
+                            </label>
+                            <input type="text"
+                                   id="phone_number"
+                                   name="phone_number"
+                                   inputmode="tel"
+                                   required
+                                   aria-invalid="false"
+                                   data-error="phone_number-error"
+                                   {{ !$isServing ? 'disabled' : '' }}
+                                   placeholder="08xxxxxxxxxx"
+                                   value="{{ $activeQueue?->guestBook?->phone_number ?? '' }}"
+                                   class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2.5 text-sm text-[#0F172A] disabled:bg-[#F4F6F9] disabled:text-[#64748B]">
+                            <p id="phone_number-error" class="field-error-text"></p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="email" class="block text-xs font-semibold text-[#0F172A] mb-1.5">
+                                Alamat Email (Opsional)
+                            </label>
+                            <input type="email"
+                                   id="email"
+                                   name="email"
+                                   aria-invalid="false"
+                                   data-error="email-error"
+                                   {{ !$isServing ? 'disabled' : '' }}
+                                   placeholder="nama@instansi.go.id"
+                                   value="{{ $activeQueue?->guestBook?->email ?? '' }}"
+                                   class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2.5 text-sm text-[#0F172A] disabled:bg-[#F4F6F9] disabled:text-[#64748B]">
+                            <p id="email-error" class="field-error-text"></p>
+                        </div>
+
+                        <div>
+                            <label for="institution_type" class="block text-xs font-semibold text-[#0F172A] mb-1.5">
+                                Kategori Pemohon / Asal <span class="text-red-600" aria-hidden="true">*</span>
+                            </label>
+                            <select id="institution_type"
+                                    name="institution_type"
+                                    required
+                                    aria-invalid="false"
+                                    data-error="institution_type-error"
+                                    {{ !$isServing ? 'disabled' : '' }}
+                                    class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2.5 text-sm text-[#0F172A] disabled:bg-[#F4F6F9] disabled:text-[#64748B]">
+                                <option value="pendidikan" {{ ($activeQueue?->guestBook?->institution_type ?? '') == 'pendidikan' ? 'selected' : '' }}>Lembaga Pendidikan / Mahasiswa / Peneliti</option>
+                                <option value="pemerintah" {{ ($activeQueue?->guestBook?->institution_type ?? '') == 'pemerintah' ? 'selected' : '' }}>Instansi Pemerintah (K/L/Pemda)</option>
+                                <option value="swasta" {{ ($activeQueue?->guestBook?->institution_type ?? '') == 'swasta' ? 'selected' : '' }}>Sektor Swasta / Bisnis</option>
+                                <option value="lsm" {{ ($activeQueue?->guestBook?->institution_type ?? '') == 'lsm' ? 'selected' : '' }}>LSM / Organisasi Masyarakat / Media</option>
+                                <option value="umum" {{ ($activeQueue?->guestBook?->institution_type ?? '') == 'umum' ? 'selected' : '' }}>Individu / Masyarakat Umum</option>
+                            </select>
+                            <p id="institution_type-error" class="field-error-text"></p>
+                        </div>
                     </div>
 
                     <div>
-                        <label for="phone_number" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                            Nomor WhatsApp / HP <span class="text-red-500">*</span>
+                        <label for="institution_name" class="block text-xs font-semibold text-[#0F172A] mb-1.5">
+                            Nama Instansi / Universitas / Lembaga Asal <span class="text-red-600" aria-hidden="true">*</span>
                         </label>
-                        <input type="text" id="phone_number" required {{ (!$activeQueue || $activeQueue->status !== 'serving') ? 'disabled' : '' }}
-                            placeholder="08xxxxxxxxxx"
-                            value="{{ $activeQueue?->guestBook?->phone_number ?? '' }}"
-                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-slate-50 disabled:text-slate-400 text-sm">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                            Alamat Email (Opsional)
-                        </label>
-                        <input type="email" id="email" {{ (!$activeQueue || $activeQueue->status !== 'serving') ? 'disabled' : '' }}
-                            placeholder="nama@instansi.go.id"
-                            value="{{ $activeQueue?->guestBook?->email ?? '' }}"
-                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-slate-50 disabled:text-slate-400 text-sm">
+                        <input type="text"
+                               id="institution_name"
+                               name="institution_name"
+                               required
+                               aria-invalid="false"
+                               data-error="institution_name-error"
+                               {{ !$isServing ? 'disabled' : '' }}
+                               placeholder="Contoh: Universitas Siliwangi / Dinas Kesehatan Kota Tasikmalaya"
+                               value="{{ $activeQueue?->guestBook?->institution_name ?? '' }}"
+                               class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2.5 text-sm text-[#0F172A] disabled:bg-[#F4F6F9] disabled:text-[#64748B]">
+                        <p id="institution_name-error" class="field-error-text"></p>
                     </div>
 
                     <div>
-                        <label for="institution_type" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                            Kategori Pemohon / Asal <span class="text-red-500">*</span>
+                        <label for="data_needs_description" class="block text-xs font-semibold text-[#0F172A] mb-1.5">
+                            Rincian Kebutuhan Data / Maksud Konsultasi <span class="text-red-600" aria-hidden="true">*</span>
                         </label>
-                        <select id="institution_type" required {{ (!$activeQueue || $activeQueue->status !== 'serving') ? 'disabled' : '' }}
-                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-slate-50 disabled:text-slate-400 text-sm">
-                            <option value="pendidikan" {{ ($activeQueue?->guestBook?->institution_type ?? '') == 'pendidikan' ? 'selected' : '' }}>Lembaga Pendidikan / Mahasiswa / Peneliti</option>
-                            <option value="pemerintah" {{ ($activeQueue?->guestBook?->institution_type ?? '') == 'pemerintah' ? 'selected' : '' }}>Instansi Pemerintah (K/L/Pemda)</option>
-                            <option value="swasta" {{ ($activeQueue?->guestBook?->institution_type ?? '') == 'swasta' ? 'selected' : '' }}>Sektor Swasta / Bisnis</option>
-                            <option value="lsm" {{ ($activeQueue?->guestBook?->institution_type ?? '') == 'lsm' ? 'selected' : '' }}>LSM / Organisasi Masyarakat / Media</option>
-                            <option value="umum" {{ ($activeQueue?->guestBook?->institution_type ?? '') == 'umum' ? 'selected' : '' }}>Individu / Masyarakat Umum</option>
-                        </select>
+                        <textarea id="data_needs_description"
+                                  name="data_needs_description"
+                                  rows="3"
+                                  required
+                                  aria-invalid="false"
+                                  data-error="data_needs_description-error"
+                                  {{ !$isServing ? 'disabled' : '' }}
+                                  placeholder="Tuliskan data statistik yang dibutuhkan atau topik konsultasi teknis..."
+                                  class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2.5 text-sm text-[#0F172A] disabled:bg-[#F4F6F9] disabled:text-[#64748B]">{{ $activeQueue?->guestBook?->data_needs_description ?? '' }}</textarea>
+                        <p id="data_needs_description-error" class="field-error-text"></p>
                     </div>
-                </div>
 
-                <div>
-                    <label for="institution_name" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                        Nama Instansi / Universitas / Lembaga Asal <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" id="institution_name" required {{ (!$activeQueue || $activeQueue->status !== 'serving') ? 'disabled' : '' }}
-                        placeholder="Contoh: Universitas Siliwangi / Dinas Kesehatan Kota Tasikmalaya"
-                        value="{{ $activeQueue?->guestBook?->institution_name ?? '' }}"
-                        class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-slate-50 disabled:text-slate-400 text-sm">
-                </div>
+                    <div class="rounded-lg border border-blue-200 bg-blue-50/60 p-4">
+                        <label for="pdp_consent" class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox"
+                                   id="pdp_consent"
+                                   name="pdp_consent"
+                                   value="1"
+                                   required
+                                   aria-invalid="false"
+                                   data-error="pdp_consent-error"
+                                   {{ !$isServing ? 'disabled' : '' }}
+                                   class="mt-0.5 h-4 w-4 rounded border-[#CBD5E1] text-[#0B4F9C] accent-[#0B4F9C]">
+                            <span class="text-xs text-[#334155] leading-relaxed">
+                                <strong class="font-bold text-[#0A2540]">Pernyataan UU Pelindungan Data Pribadi (UU PDP):</strong>
+                                Pengunjung menyatakan data identitas dan kontak di atas adalah benar, serta menyetujui penggunaannya secara kedinasan oleh BPS untuk pencatatan buku tamu dan evaluasi pelayanan statistik publik.
+                            </span>
+                        </label>
+                        <p id="pdp_consent-error" class="field-error-text"></p>
+                    </div>
 
-                <div>
-                    <label for="data_needs_description" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                        Rincian Kebutuhan Data / Maksud Konsultasi <span class="text-red-500">*</span>
-                    </label>
-                    <textarea id="data_needs_description" rows="3" required {{ (!$activeQueue || $activeQueue->status !== 'serving') ? 'disabled' : '' }}
-                        placeholder="Tuliskan data statistik yang dibutuhkan atau topik konsultasi teknis..."
-                        class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-slate-50 disabled:text-slate-400 text-sm">{{ $activeQueue?->guestBook?->data_needs_description ?? '' }}</textarea>
-                </div>
-
-                <!-- Pernyataan Persetujuan UU Perlindungan Data Pribadi (UU PDP) -->
-                <div class="p-4 bg-blue-50/80 border border-blue-200 rounded-2xl">
-                    <label class="flex items-start space-x-3 cursor-pointer">
-                        <input type="checkbox" id="pdp_consent" name="pdp_consent" required value="1"
-                            {{ (!$activeQueue || $activeQueue->status !== 'serving') ? 'disabled' : '' }}
-                            class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded cursor-pointer">
-                        <span class="text-xs text-slate-700 leading-relaxed">
-                            <strong class="text-blue-900 font-bold">Pernyataan UU Pelindungan Data Pribadi (UU PDP):</strong>
-                            Saya menyatakan bahwa data identitas dan kontak yang diberikan di atas adalah benar, serta menyetujui penggunaannya secara kedinasan oleh Badan Pusat Statistik untuk pencatatan buku tamu dan evaluasi pelayanan statistik publik sesuai ketentuan perundang-undangan yang berlaku.
-                        </span>
-                    </label>
-                </div>
-
-                <div class="pt-4 border-t border-slate-200 flex justify-end">
-                    <button type="submit" id="btn-submit-complete" {{ (!$activeQueue || $activeQueue->status !== 'serving') ? 'disabled' : '' }}
-                        class="bg-blue-900 hover:bg-blue-800 disabled:opacity-40 disabled:pointer-events-none text-white font-extrabold px-8 py-3.5 rounded-xl shadow-lg transition active:scale-[0.99] flex items-center space-x-2">
-                        <span>✓</span>
-                        <span>SIMPAN BUKU TAMU & SELESAIKAN ANTREAN</span>
-                    </button>
-                </div>
-            </form>
+                    <div class="pt-4 border-t border-[#DCE3EC] flex justify-end">
+                        <button type="submit"
+                                id="btn-submit-complete"
+                                {{ !$isServing ? 'disabled' : '' }}
+                                class="inline-flex items-center gap-2 rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] disabled:opacity-40 disabled:pointer-events-none px-6 py-3 text-xs font-bold uppercase tracking-wider text-white transition-colors">
+                            <x-icon name="check" class="w-4 h-4" />
+                            <span>Simpan Buku Tamu &amp; Selesaikan Antrean</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
         </div>
-    </main>
+    </div>
+@endsection
 
-    <script>
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         const selectedCounterId = {{ $selectedCounter?->id ?? 1 }};
+        const queueIdInput = document.getElementById('form-queue-id');
+        const guestbookForm = document.getElementById('form-guestbook');
+        const errorSummary = document.getElementById('guestbook-error-summary');
+        const { showToast, showConfirm, renderFormErrors, clearFormErrors } = window.PstUi;
 
-        async function callNextQueue() {
+        async function postAction(url, payload, triggerBtn) {
+            if (triggerBtn) triggerBtn.disabled = true;
+            let keepDisabled = false;
             try {
-                const res = await fetch("{{ route('counter.callNext') }}", {
+                const res = await fetch(url, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify({ counter_id: selectedCounterId })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
                 });
                 const json = await res.json();
-                if (json.status === 'success') {
-                    window.location.reload();
-                } else {
-                    alert(json.message || 'Tidak ada antrean menunggu.');
+                if (res.ok && json.status === 'success') {
+                    keepDisabled = true;
                 }
-            } catch (e) {
-                console.error(e);
-                alert('Gagal memanggil antrean berikutnya.');
+                return { res, json };
+            } finally {
+                if (triggerBtn && !keepDisabled) triggerBtn.disabled = false;
             }
         }
 
-        async function recallQueue() {
-            const queueId = document.getElementById('form-queue-id').value;
+        const btnCallNext = document.getElementById('btn-call-next');
+        btnCallNext?.addEventListener('click', async () => {
+            try {
+                const { res, json } = await postAction("{{ route('counter.callNext') }}", { counter_id: selectedCounterId }, btnCallNext);
+                if (res.ok && json.status === 'success') {
+                    window.location.reload();
+                } else {
+                    showToast(json.message || 'Tidak ada antrean menunggu.', 'info');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Gagal memanggil antrean berikutnya.', 'error');
+            }
+        });
+
+        const btnRecall = document.getElementById('btn-recall');
+        btnRecall?.addEventListener('click', async () => {
+            const queueId = queueIdInput?.value;
             if (!queueId) return;
             try {
-                const res = await fetch("{{ route('counter.recall') }}", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify({ queue_id: queueId })
-                });
-                const json = await res.json();
+                const { res, json } = await postAction("{{ route('counter.recall') }}", { queue_id: queueId }, btnRecall);
                 if (res.ok && json.status === 'success') {
-                    alert(json.message || 'Panggilan ulang dikirim ke layar Display TV.');
-                    window.location.reload();
+                    showToast(json.message || 'Panggilan ulang dikirim ke layar Display TV.', 'success');
+                    window.setTimeout(() => window.location.reload(), 600);
                 } else {
-                    alert(json.message || 'Gagal memanggil ulang antrean.');
+                    showToast(json.message || 'Gagal memanggil ulang antrean.', 'warning');
                 }
             } catch (e) {
                 console.error(e);
-                alert('Terjadi kesalahan saat memanggil ulang.');
+                showToast('Terjadi kesalahan saat memanggil ulang.', 'error');
             }
-        }
+        });
 
-        async function startServing() {
-            const queueId = document.getElementById('form-queue-id').value;
+        const btnStartServe = document.getElementById('btn-start-serve');
+        btnStartServe?.addEventListener('click', async () => {
+            const queueId = queueIdInput?.value;
             if (!queueId) return;
             try {
-                const res = await fetch("{{ route('counter.startServing') }}", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify({ queue_id: queueId })
-                });
-                const json = await res.json();
+                const { res, json } = await postAction("{{ route('counter.startServing') }}", { queue_id: queueId }, btnStartServe);
                 if (res.ok && json.status === 'success') {
                     window.location.reload();
                 } else {
-                    alert(json.message || 'Gagal memulai pelayanan.');
+                    showToast(json.message || 'Gagal memulai pelayanan.', 'error');
                 }
             } catch (e) {
                 console.error(e);
-                alert('Terjadi kesalahan koneksi.');
+                showToast('Terjadi kesalahan koneksi.', 'error');
             }
-        }
+        });
 
-        async function skipQueue() {
-            if (!confirm('Apakah Anda yakin ingin melewati nomor antrean ini karena pengunjung tidak hadir?')) return;
-            const queueId = document.getElementById('form-queue-id').value;
+        const btnSkip = document.getElementById('btn-skip');
+        btnSkip?.addEventListener('click', async () => {
+            const queueId = queueIdInput?.value;
             if (!queueId) return;
+            const confirmed = await showConfirm({
+                title: 'Lewati Nomor Antrean?',
+                message: 'Antrean ini akan ditandai terlewat karena pengunjung tidak hadir di loket.',
+                confirmLabel: 'Ya, Lewati Antrean',
+                cancelLabel: 'Batal',
+                tone: 'danger',
+            });
+            if (!confirmed) return;
+
             try {
-                const res = await fetch("{{ route('counter.skip') }}", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify({ queue_id: queueId })
-                });
-                const json = await res.json();
+                const { res, json } = await postAction("{{ route('counter.skip') }}", { queue_id: queueId }, btnSkip);
                 if (res.ok && json.status === 'success') {
-                    alert(json.message || 'Antrean berhasil dilewati.');
-                    window.location.reload();
+                    showToast(json.message || 'Antrean berhasil dilewati.', 'success');
+                    window.setTimeout(() => window.location.reload(), 500);
                 } else {
-                    alert(json.message || 'Gagal melewati antrean.');
+                    showToast(json.message || 'Gagal melewati antrean.', 'warning');
                 }
             } catch (e) {
                 console.error(e);
-                alert('Terjadi kesalahan koneksi saat melewati antrean.');
+                showToast('Terjadi kesalahan koneksi saat melewati antrean.', 'error');
             }
-        }
+        });
 
-        async function recallSkippedQueue(queueId, ticketCode) {
-            if (!confirm(`Kembalikan antrean ${ticketCode} ke urutan paling depan untuk dipanggil berikutnya?`)) return;
-            try {
-                const res = await fetch("{{ route('counter.recallSkipped') }}", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify({ queue_id: queueId })
+        document.querySelectorAll('.btn-recall-skipped').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const queueId = btn.dataset.recallSkippedId;
+                const ticketCode = btn.dataset.recallSkippedCode;
+                const confirmed = await showConfirm({
+                    title: `Panggil Kembali ${ticketCode}?`,
+                    message: `Antrean ${ticketCode} akan dikembalikan ke urutan paling depan layanannya (maksimal 1 kali).`,
+                    confirmLabel: 'Kembalikan ke Antrean',
+                    cancelLabel: 'Batal',
+                    tone: 'primary',
                 });
-                const json = await res.json();
-                if (res.ok && json.status === 'success') {
-                    alert(json.message || `Antrean ${ticketCode} berhasil dikembalikan ke urutan terdepan.`);
-                    window.location.reload();
-                } else {
-                    alert(json.message || 'Gagal memanggil kembali antrean terlewat.');
-                }
-            } catch (e) {
-                console.error(e);
-                alert('Terjadi kesalahan saat memproses antrean terlewat.');
-            }
-        }
+                if (!confirmed) return;
 
-        async function submitComplete(e) {
+                try {
+                    const { res, json } = await postAction("{{ route('counter.recallSkipped') }}", { queue_id: queueId }, btn);
+                    if (res.ok && json.status === 'success') {
+                        showToast(json.message || `Antrean ${ticketCode} dikembalikan ke antrean terdepan.`, 'success');
+                        window.setTimeout(() => window.location.reload(), 600);
+                    } else {
+                        showToast(json.message || 'Gagal memanggil kembali antrean terlewat.', 'warning');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    showToast('Terjadi kesalahan saat memproses antrean terlewat.', 'error');
+                }
+            });
+        });
+
+        guestbookForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const queueId = document.getElementById('form-queue-id').value;
+            const queueId = queueIdInput?.value;
             if (!queueId) return;
 
-            const pdpConsent = document.getElementById('pdp_consent');
-            if (pdpConsent && !pdpConsent.checked) {
-                alert('Pernyataan persetujuan UU Perlindungan Data Pribadi (UU PDP) wajib disetujui.');
+            clearFormErrors(guestbookForm, errorSummary);
+
+            const clientErrors = {};
+            const fullName = document.getElementById('full_name').value.trim();
+            const phone = document.getElementById('phone_number').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const instType = document.getElementById('institution_type').value;
+            const instName = document.getElementById('institution_name').value.trim();
+            const needsDesc = document.getElementById('data_needs_description').value.trim();
+            const pdpConsent = document.getElementById('pdp_consent').checked;
+
+            if (!fullName) clientErrors.full_name = ['Nama lengkap pengunjung wajib diisi.'];
+            if (!phone) clientErrors.phone_number = ['Nomor WhatsApp / HP pengunjung wajib diisi.'];
+            if (!instName) clientErrors.institution_name = ['Nama instansi asal wajib diisi.'];
+            if (!needsDesc) clientErrors.data_needs_description = ['Rincian kebutuhan data wajib diisi.'];
+            if (!pdpConsent) clientErrors.pdp_consent = ['Pernyataan persetujuan UU PDP wajib disetujui.'];
+
+            if (Object.keys(clientErrors).length > 0) {
+                renderFormErrors(guestbookForm, errorSummary, clientErrors);
                 return;
             }
 
-            const payload = {
-                queue_id: queueId,
-                full_name: document.getElementById('full_name').value,
-                phone_number: document.getElementById('phone_number').value,
-                email: document.getElementById('email').value,
-                institution_type: document.getElementById('institution_type').value,
-                institution_name: document.getElementById('institution_name').value,
-                data_needs_description: document.getElementById('data_needs_description').value,
-                pdp_consent: true,
-            };
-
+            const submitBtn = document.getElementById('btn-submit-complete');
             try {
-                const res = await fetch("{{ route('counter.complete') }}", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const json = await res.json();
-                if (json.status === 'success') {
-                    alert('Data buku tamu tersimpan dan antrean telah diselesaikan.');
-                    window.location.reload();
+                const { res, json } = await postAction(
+                    "{{ route('counter.complete') }}",
+                    {
+                        queue_id: queueId,
+                        full_name: fullName,
+                        phone_number: phone,
+                        email: email || null,
+                        institution_type: instType,
+                        institution_name: instName,
+                        data_needs_description: needsDesc,
+                        pdp_consent: true,
+                    },
+                    submitBtn
+                );
+
+                if (res.ok && json.status === 'success') {
+                    showToast('Buku tamu tersimpan dan antrean selesai.', 'success');
+                    window.setTimeout(() => window.location.reload(), 500);
                 } else {
-                    alert(json.message || 'Gagal menyimpan buku tamu.');
+                    renderFormErrors(guestbookForm, errorSummary, json.errors || {}, json.message || 'Gagal menyimpan buku tamu.');
                 }
-            } catch (e) {
-                console.error(e);
-                alert('Terjadi kendala saat menyimpan data.');
+            } catch (err) {
+                console.error(err);
+                showToast('Terjadi kendala saat menyimpan data buku tamu.', 'error');
             }
-        }
-    </script>
-</body>
-</html>
+        });
+    });
+</script>
+@endpush
