@@ -5,8 +5,7 @@
 @section('main-class', 'max-w-md w-full mx-auto px-4 py-12 flex-1 flex flex-col justify-center')
 
 @section('content')
-    <div class="bg-white rounded-xl border border-[#DCE3EC] overflow-hidden shadow-sm">
-        <div class="h-1 w-full bg-[#0B4F9C]" aria-hidden="true"></div>
+    <div class="bg-white rounded-xl border border-[#DCE3EC] shadow-sm">
         <div class="p-6 sm:p-8 text-center">
             <div class="w-12 h-12 rounded-lg bg-blue-50 border border-blue-200 text-[#0B4F9C] flex items-center justify-center mx-auto mb-4">
                 <x-icon name="search" class="w-6 h-6" />

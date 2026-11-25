@@ -98,10 +98,10 @@
                         <x-icon name="check" class="w-5 h-5" />
                     </span>
                 </div>
-                <div class="mt-4 pt-3 border-t border-[#EDF1F6] grid grid-cols-3 gap-1.5 text-center text-[11px] font-semibold text-[#475569] tabular-nums-strict">
-                    <div class="rounded bg-[#F4F6F9] py-1">Layani: {{ $servingMonth }}</div>
-                    <div class="rounded bg-[#F4F6F9] py-1">Tunggu: {{ $waitingMonth }}</div>
-                    <div class="rounded bg-red-50 text-red-700 py-1">Skip: {{ $skippedMonth }}</div>
+                <div class="mt-4 pt-3 border-t border-[#EDF1F6] flex items-center justify-between text-xs text-[#475569] tabular-nums-strict">
+                    <span>Layani: <strong class="text-[#0F172A]">{{ $servingMonth }}</strong></span>
+                    <span>Tunggu: <strong class="text-[#0F172A]">{{ $waitingMonth }}</strong></span>
+                    <span class="text-red-700 font-semibold">Skip: {{ $skippedMonth }}</span>
                 </div>
             </div>
 

@@ -16,7 +16,7 @@
     $currentNav = $activeNav ?? '';
 @endphp
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="workspace-html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,17 +33,18 @@
             <span class="flex-1 bg-[#EA580C]"></span>
         </div>
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-            <div class="flex items-center gap-4 min-w-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <div class="shrink-0">
                 <x-bps-brand
-                    :title="$pageTitle ?? 'Workspace PST BPS'"
-                    :subtitle="$pageSubtitle ?? 'Badan Pusat Statistik Kota Tasikmalaya'"
+                    title="PST BPS"
+                    subtitle="Kota Tasikmalaya"
+                    :href="$isAdmin ? route('admin.dashboard') : route('counter.index')"
                     :dark="true"
                 />
             </div>
 
-            <div class="flex items-center gap-3">
-                <nav aria-label="Navigasi Utama" class="relative flex items-center">
+            <div class="flex items-center gap-3 shrink-0">
+                <nav aria-label="Navigasi Utama" class="relative flex items-center shrink-0">
                     <button id="workspace-nav-toggle"
                             type="button"
                             aria-expanded="false"
@@ -54,13 +55,13 @@
                     </button>
 
                     <ul id="workspace-nav-list"
-                        class="hidden lg:flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-1.5 absolute lg:static right-0 top-full mt-2 lg:mt-0 w-64 lg:w-auto rounded-lg lg:rounded-none border lg:border-0 border-[#1E3A5F] bg-[#0A2540] p-2 lg:p-0 shadow-lg lg:shadow-none z-50">
+                        class="hidden lg:flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-1 absolute lg:static right-0 top-full mt-2 lg:mt-0 w-64 lg:w-auto rounded-lg lg:rounded-none border lg:border-0 border-[#1E3A5F] bg-[#0A2540] p-2 lg:p-0 shadow-lg lg:shadow-none z-50">
                         @foreach($navItems as $item)
                             @php $isCurrent = $currentNav === $item['key']; @endphp
                             <li>
                                 <a href="{{ route($item['route']) }}"
                                    @if($isCurrent) aria-current="page" @endif
-                                   class="block rounded-md px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap {{ $isCurrent ? 'bg-white text-[#0A2540]' : 'text-slate-200 hover:bg-white/10 hover:text-white' }}">
+                                   class="block rounded-md px-2.5 xl:px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap {{ $isCurrent ? 'bg-white text-[#0A2540]' : 'text-slate-200 hover:bg-white/10 hover:text-white' }}">
                                     {{ $item['label'] }}
                                 </a>
                             </li>
@@ -86,8 +87,8 @@
                     </ul>
                 </nav>
 
-                <div class="hidden lg:flex items-center gap-2.5 border-l border-white/15 pl-3">
-                    <div class="text-right leading-tight">
+                <div class="hidden lg:flex items-center gap-2.5 border-l border-white/15 pl-3 shrink-0">
+                    <div class="text-right leading-tight whitespace-nowrap">
                         <div class="text-xs font-semibold text-white">{{ $user?->name }}</div>
                         <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-300">{{ $user?->role }}</div>
                     </div>

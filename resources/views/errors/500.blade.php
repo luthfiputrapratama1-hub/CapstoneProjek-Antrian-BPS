@@ -5,8 +5,7 @@
 @section('main-class', 'max-w-md w-full mx-auto px-4 py-12 flex-1 flex flex-col justify-center')
 
 @section('content')
-    <div class="bg-white rounded-xl border border-[#DCE3EC] overflow-hidden shadow-sm">
-        <div class="h-1 w-full bg-red-700" aria-hidden="true"></div>
+    <div class="bg-white rounded-xl border border-[#DCE3EC] shadow-sm">
         <div class="p-6 sm:p-8 text-center">
             <div class="w-12 h-12 rounded-lg bg-red-50 border border-red-200 text-red-700 flex items-center justify-center mx-auto mb-4">
                 <x-icon name="warning" class="w-6 h-6" />
