@@ -53,4 +53,47 @@ class LandingAndErrorPagesTest extends TestCase
         $response->assertSee('Akses Ditolak');
         $response->assertSee('Kembali ke Beranda Utama');
     }
+
+    public function test_portal_auth_and_error_pages_use_offline_vite_without_emojis_or_cdn(): void
+    {
+        $landing = $this->get('/')->assertStatus(200);
+        $landing->assertSee('Layanan Publik &amp; Ruang Tunggu', false);
+        $landing->assertSee('Operasional Staf &amp; Pimpinan', false);
+        $landing->assertDontSee('cdn.tailwindcss.com');
+        $landing->assertDontSee('🏛️');
+        $landing->assertDontSee('🎫');
+
+        $login = $this->get('/login')->assertStatus(200);
+        $login->assertSee('autocomplete="username"', false);
+        $login->assertSee('autocomplete="current-password"', false);
+        $login->assertSee('data-password-toggle="password"', false);
+        $login->assertDontSee('cdn.tailwindcss.com');
+
+        $this->actingAs(User::where('role', 'petugas')->first());
+        $changePwd = $this->get('/password/change')->assertStatus(200);
+        $changePwd->assertSee('autocomplete="new-password"', false);
+        $changePwd->assertDontSee('cdn.tailwindcss.com');
+        $changePwd->assertDontSee('🔒');
+
+        $notFound = $this->get('/halaman-yang-tidak-pernah-ada-123')->assertStatus(404);
+        $notFound->assertDontSee('cdn.tailwindcss.com');
+        $notFound->assertDontSee('🔍');
+
+        $forbidden = $this->get('/admin/dashboard')->assertStatus(403);
+        $forbidden->assertDontSee('cdn.tailwindcss.com');
+        $forbidden->assertDontSee('⛔');
+    }
+
+    public function test_419_and_500_error_views_render_cleanly_without_cdn_or_emojis(): void
+    {
+        $view419 = view('errors.419')->render();
+        $this->assertStringContainsString('Sesi Halaman Kedaluwarsa', $view419);
+        $this->assertStringNotContainsString('cdn.tailwindcss.com', $view419);
+        $this->assertStringNotContainsString('⏳', $view419);
+
+        $view500 = view('errors.500')->render();
+        $this->assertStringContainsString('Terjadi Kesalahan Sistem', $view500);
+        $this->assertStringNotContainsString('cdn.tailwindcss.com', $view500);
+        $this->assertStringNotContainsString('⚠️', $view500);
+    }
 }
