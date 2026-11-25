@@ -1,187 +1,161 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Anjungan Tiket Mandiri - PST BPS Kota Tasikmalaya</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Format Cetak Struk Printer Termal (58mm / 80mm ESC/POS) */
-        @media print {
-            body * {
-                visibility: hidden !important;
-            }
-            #ticket-print-area, #ticket-print-area * {
-                visibility: visible !important;
-            }
-            #ticket-print-area {
-                position: fixed;
-                left: 0;
-                top: 0;
-                width: 58mm; /* Ukuran standar, adaptif jika kertas 80mm */
-                max-width: 100%;
-                padding: 4mm 2mm;
-                font-family: 'Courier New', Courier, monospace;
-                color: #000;
-                background: #fff;
-                font-size: 11px;
-                line-height: 1.3;
-            }
-            @page {
-                size: 58mm auto;
-                margin: 0;
-            }
-        }
-    </style>
-</head>
-<body class="bg-slate-100 min-h-screen flex flex-col justify-between selection:bg-none font-sans select-none">
-    <!-- Header Anjungan Kiosk -->
-    <header class="bg-blue-900 text-white shadow-lg py-5 px-8 flex justify-between items-center border-b-4 border-amber-400">
-        <div class="flex items-center space-x-5">
-            <a href="{{ route('home') }}" title="Kembali ke Beranda Portal PST"
-                class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-blue-900 font-black text-3xl shadow-md border-2 border-blue-200 hover:scale-105 transition-transform duration-150">
-                BPS
-            </a>
-            <div>
-                <h1 class="text-2xl md:text-3xl font-black tracking-wide uppercase">BADAN PUSAT STATISTIK</h1>
-                <p class="text-blue-200 text-sm md:text-base font-semibold">Pelayanan Statistik Terpadu (PST) Kota Tasikmalaya</p>
-            </div>
+@extends('layouts.screen', ['screenTheme' => 'light'])
+
+@section('title', 'Anjungan Tiket Mandiri — PST BPS Kota Tasikmalaya')
+
+@php
+    $servicePalette = [
+        'A' => ['bar' => 'border-l-[#0B4F9C]', 'badge' => 'bg-[#0B4F9C] text-white', 'tag' => 'text-[#0B4F9C] bg-blue-50 border-blue-200'],
+        'B' => ['bar' => 'border-l-[#15803D]', 'badge' => 'bg-[#15803D] text-white', 'tag' => 'text-[#15803D] bg-emerald-50 border-emerald-200'],
+        'C' => ['bar' => 'border-l-[#C2410C]', 'badge' => 'bg-[#C2410C] text-white', 'tag' => 'text-[#C2410C] bg-orange-50 border-orange-200'],
+        'D' => ['bar' => 'border-l-[#0F766E]', 'badge' => 'bg-[#0F766E] text-white', 'tag' => 'text-[#0F766E] bg-teal-50 border-teal-200'],
+    ];
+@endphp
+
+@section('content')
+    <header class="bg-[#0A2540] text-white border-b border-white/10">
+        <div class="h-1 w-full flex" aria-hidden="true">
+            <span class="flex-1 bg-[#0B4F9C]"></span>
+            <span class="flex-1 bg-[#15803D]"></span>
+            <span class="flex-1 bg-[#EA580C]"></span>
         </div>
-        <div class="text-right bg-blue-950/60 border border-blue-700/60 px-5 py-2.5 rounded-2xl shadow-inner">
-            <div id="live-clock" class="text-3xl font-mono font-black tracking-wider text-emerald-400">--:--:--</div>
-            <div id="live-date" class="text-blue-200 text-xs font-semibold mt-0.5 tracking-wide">--</div>
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+            <x-bps-brand
+                title="BADAN PUSAT STATISTIK"
+                subtitle="Pelayanan Statistik Terpadu (PST) Kota Tasikmalaya"
+                :dark="true"
+                size="lg"
+            />
+            <div class="text-right rounded-lg border border-white/15 bg-white/5 px-4 py-2 tabular-nums-strict">
+                <div id="live-clock" class="text-2xl font-mono font-bold tracking-wider text-white">--:--:--</div>
+                <div id="live-date" class="text-xs text-slate-300">--</div>
+            </div>
         </div>
     </header>
 
-    <!-- Main Content Layar Sentuh -->
     <main class="max-w-6xl mx-auto px-6 py-8 flex-1 flex flex-col justify-center w-full">
-        <div class="text-center mb-8">
-            <span class="inline-block px-4 py-1 rounded-full bg-blue-100 text-blue-900 font-extrabold text-xs uppercase tracking-widest mb-2 border border-blue-200">
-                Anjungan Mandiri Layar Sentuh
-            </span>
-            <h2 class="text-3xl md:text-4xl font-black text-slate-800">SELAMAT DATANG DI PST BPS</h2>
-            <p class="text-slate-600 text-base md:text-lg mt-2 font-medium">Sentuh salah satu kategori layanan di bawah ini untuk mengambil tiket antrean Anda</p>
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#DCE3EC] pb-4">
+            <div>
+                <span class="text-xs font-semibold uppercase tracking-wider text-[#0B4F9C]">Anjungan Mandiri Layar Sentuh</span>
+                <h1 class="text-2xl md:text-3xl font-bold text-[#0F172A] mt-1">Pilih Layanan Statistik Anda</h1>
+            </div>
+            <p class="text-sm text-[#475569]">Sentuh salah satu kategori di bawah untuk menerbitkan nomor antrean.</p>
         </div>
 
-        <!-- Tombol Layanan Touchscreen -->
-        <div id="services-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div id="services-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
             @forelse($services as $service)
+                @php
+                    $prefix = strtoupper($service->code_prefix);
+                    $tone = $servicePalette[$prefix] ?? $servicePalette['A'];
+                @endphp
                 <button type="button"
-                    id="btn-service-{{ $service->id }}"
-                    onclick="takeTicket({{ $service->id }}, '{{ addslashes($service->name) }}', '{{ $service->code_prefix }}')"
-                    class="service-btn group relative bg-white hover:bg-blue-50/80 active:scale-[0.98] border-2 border-slate-200 hover:border-blue-600 focus:border-blue-600 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-150 flex items-center space-x-6 text-left cursor-pointer">
-                    <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-700 to-indigo-900 text-white flex items-center justify-center font-black text-4xl shadow-md group-hover:scale-105 transition-transform duration-150 shrink-0">
+                        id="btn-service-{{ $service->id }}"
+                        data-service-id="{{ $service->id }}"
+                        class="service-btn group w-full min-h-[144px] rounded-2xl border border-[#DCE3EC] border-l-4 {{ $tone['bar'] }} bg-white p-6 text-left transition-colors hover:border-[#0B4F9C] hover:bg-[#F8FAFC] active:bg-[#EDF1F6] flex items-center gap-5">
+                    <span class="w-20 h-20 rounded-xl {{ $tone['badge'] }} flex items-center justify-center font-mono font-bold text-4xl shrink-0 tabular-nums-strict">
                         {{ $service->code_prefix }}
-                    </div>
-                    <div class="flex-1">
-                        <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full uppercase tracking-wider mb-1.5">
-                            Kategori {{ $service->code_prefix }}
+                    </span>
+                    <span class="min-w-0 flex-1">
+                        <span class="inline-block rounded-md border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider {{ $tone['tag'] }}">
+                            Layanan {{ $service->code_prefix }}
                         </span>
-                        <h3 class="text-xl md:text-2xl font-black text-slate-800 group-hover:text-blue-900 transition-colors">
+                        <span class="block text-xl font-bold text-[#0F172A] mt-2">
                             {{ $service->name }}
-                        </h3>
-                        <p class="text-slate-500 text-sm mt-1 line-clamp-2">
+                        </span>
+                        <span class="block text-xs sm:text-sm text-[#475569] mt-1 line-clamp-2">
                             {{ $service->description ?? 'Layanan konsultasi dan informasi statistik terpadu.' }}
-                        </p>
-                    </div>
+                        </span>
+                    </span>
                 </button>
             @empty
-                <div class="col-span-2 text-center py-12 bg-white rounded-3xl border border-slate-200 p-8">
-                    <p class="text-slate-500 text-lg">Belum ada layanan aktif yang tersedia saat ini.</p>
+                <div class="col-span-2 rounded-xl border border-[#DCE3EC] bg-white p-10 text-center">
+                    <p class="text-sm font-medium text-[#475569]">Belum ada layanan aktif yang tersedia saat ini.</p>
                 </div>
             @endforelse
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-4 px-8 text-center text-slate-500 text-xs flex justify-between items-center shadow-inner">
-        <span class="font-medium">© 2026 Badan Pusat Statistik Kota Tasikmalaya - PST Siap Melayani dengan HATI</span>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-            ● Anjungan Siap Operasional
-        </span>
+    <footer class="bg-white border-t border-[#DCE3EC] py-3.5 px-6 text-xs text-[#475569]">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span>© 2026 Badan Pusat Statistik Kota Tasikmalaya · Pelayanan Statistik Terpadu</span>
+            <x-badge tone="green">Anjungan Siap Operasional</x-badge>
+        </div>
     </footer>
 
-    <!-- Overlay Loading State (Mencegah Tekan Ganda) -->
-    <div id="loading-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex-col items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl p-8 shadow-2xl flex flex-col items-center max-w-xs w-full text-center border border-slate-100 animate-pulse">
-            <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-900 rounded-full animate-spin mb-4"></div>
-            <h3 class="text-lg font-black text-slate-800">Mencetak Tiket...</h3>
-            <p class="text-xs text-slate-500 mt-1">Mohon tunggu sebentar, sistem sedang memproses nomor antrean Anda.</p>
+    {{-- Processing Overlay --}}
+    <div id="loading-overlay" role="status" aria-live="polite" class="fixed inset-0 bg-slate-900/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl border border-[#DCE3EC] p-6 max-w-xs w-full text-center shadow-lg">
+            <div class="w-10 h-10 border-4 border-[#DCE3EC] border-t-[#0B4F9C] rounded-full animate-spin mx-auto mb-3"></div>
+            <h2 class="text-base font-bold text-[#0F172A]">Menerbitkan Tiket...</h2>
+            <p class="text-xs text-[#475569] mt-1">Mohon tunggu, sistem sedang menyiapkan nomor antrean Anda.</p>
         </div>
     </div>
 
-    <!-- Virtual Mock Ticket Modal -->
-    <div id="ticket-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center border border-slate-200">
-            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 text-3xl font-black shadow-inner">
-                ✓
+    {{-- Native Dialog: Virtual Ticket Preview --}}
+    <dialog id="ticket-modal" closedby="any" aria-labelledby="ticket-modal-title" class="pst-dialog max-w-sm">
+        <div class="p-6 text-center">
+            <div class="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 text-[#15803D] flex items-center justify-center mx-auto mb-3">
+                <x-icon name="check" class="w-6 h-6" />
             </div>
-            <h3 class="text-2xl font-black text-slate-800">Tiket Diterbitkan!</h3>
-            <p class="text-xs text-slate-500 mt-1">Silakan ambil struk cetak tiket Anda di bawah layar</p>
+            <h1 id="ticket-modal-title" class="text-xl font-bold text-[#0F172A]">Tiket Diterbitkan</h1>
+            <p class="text-xs text-[#475569] mt-1">Silakan ambil struk tiket dan tunggu panggilan pada layar ruang tunggu.</p>
 
-            <!-- Struk Virtual Mock Preview -->
-            <div class="my-5 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-5 text-left font-mono text-xs text-slate-700 shadow-inner">
-                <div class="text-center font-bold text-xs pb-3 border-b border-dashed border-slate-300">
-                    BADAN PUSAT STATISTIK<br>
-                    <span class="font-normal text-[11px] text-slate-500">PST BPS KOTA TASIKMALAYA</span>
+            <div class="my-5 rounded-lg border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-4 text-left font-mono text-xs text-[#334155]">
+                <div class="text-center font-bold pb-2.5 border-b border-dashed border-[#CBD5E1]">
+                    BADAN PUSAT STATISTIK
+                    <span class="block font-normal text-[11px] text-[#64748B]">PST BPS KOTA TASIKMALAYA</span>
                 </div>
-                <div class="text-center my-4">
-                    <div class="text-[11px] font-sans font-bold text-slate-400 uppercase tracking-wider">Nomor Antrean</div>
-                    <div id="modal-ticket-code" class="text-5xl font-mono font-black text-blue-900 my-1 tracking-wider">A-001</div>
-                    <div id="modal-service-name" class="font-sans font-bold text-slate-700 text-sm mt-1">Konsultasi Statistik</div>
+                <div class="text-center my-3.5">
+                    <div class="font-sans text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Nomor Antrean</div>
+                    <div id="modal-ticket-code" class="text-4xl font-bold text-[#0A2540] my-1 tracking-wider tabular-nums-strict">A-001</div>
+                    <div id="modal-service-name" class="font-sans font-semibold text-sm text-[#0F172A]">Konsultasi Statistik</div>
                 </div>
-                <div class="border-t border-dashed border-slate-300 pt-3 space-y-1.5 text-xs">
+                <div class="border-t border-dashed border-[#CBD5E1] pt-2.5 space-y-1.5 text-xs tabular-nums-strict">
                     <div class="flex justify-between">
-                        <span class="text-slate-500">Waktu Kedatangan:</span>
-                        <span id="modal-ticket-time" class="font-bold text-slate-800">-</span>
+                        <span class="text-[#64748B]">Waktu:</span>
+                        <span id="modal-ticket-time" class="font-semibold text-[#0F172A]">-</span>
                     </div>
-                    <div class="flex justify-between font-bold text-slate-900 bg-amber-50 p-1.5 rounded-lg border border-amber-200">
+                    <div class="flex justify-between rounded bg-orange-50 border border-orange-200 px-2 py-1 font-semibold text-[#C2410C]">
                         <span>Antrean di Depan:</span>
-                        <span id="modal-ticket-ahead" class="text-amber-800">0 Orang</span>
+                        <span id="modal-ticket-ahead">0 Orang</span>
                     </div>
                 </div>
-                <div class="text-center text-[10px] text-slate-500 mt-3 pt-2 border-t border-dashed border-slate-300 font-sans">
-                    Harap menunggu panggilan nomor Anda di ruang tunggu.
-                </div>
             </div>
 
-            <!-- Auto Close Countdown Bar -->
             <div class="mb-4">
-                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                    <div id="countdown-progress" class="bg-blue-600 h-2 rounded-full transition-all duration-1000" style="width: 100%;"></div>
+                <div class="w-full bg-[#EDF1F6] rounded-full h-1.5 overflow-hidden">
+                    <div id="countdown-progress" class="bg-[#0B4F9C] h-1.5 transition-all duration-1000" style="width: 100%;"></div>
                 </div>
-                <div class="text-[11px] text-slate-500 mt-1.5 font-medium">
-                    Kembali ke layar utama dalam <span id="countdown-number" class="font-bold text-blue-900">5</span> detik
-                </div>
+                <p class="text-xs text-[#475569] mt-1.5 tabular-nums-strict">
+                    Kembali otomatis dalam <span id="countdown-number" class="font-bold text-[#0F172A]">5</span> detik
+                </p>
             </div>
 
-            <button type="button" onclick="closeModal()"
-                class="w-full bg-blue-900 hover:bg-blue-800 active:scale-[0.99] text-white font-bold py-3.5 rounded-2xl transition shadow-lg text-sm">
+            <button type="button" id="btn-close-ticket-modal"
+                    class="w-full rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] py-3 text-sm font-semibold text-white">
                 Selesai / Kembali Sekarang
             </button>
         </div>
-    </div>
+    </dialog>
 
-    <!-- Modal Error Ramah Pengguna -->
-    <div id="error-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center border border-red-200">
-            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3 text-3xl font-black">
-                ⚠️
+    {{-- Native Dialog: Error Feedback --}}
+    <dialog id="error-modal" closedby="any" aria-labelledby="error-modal-title" class="pst-dialog max-w-sm">
+        <div class="p-6 text-center">
+            <div class="w-12 h-12 rounded-full bg-red-50 border border-red-200 text-red-700 flex items-center justify-center mx-auto mb-3">
+                <x-icon name="warning" class="w-6 h-6" />
             </div>
-            <h3 class="text-xl font-black text-slate-800">Pemberitahuan</h3>
-            <p id="error-modal-message" class="text-xs text-slate-600 my-4 leading-relaxed">
+            <h1 id="error-modal-title" class="text-lg font-bold text-[#0F172A]">Gagal Memproses Tiket</h1>
+            <p id="error-modal-message" class="text-xs text-[#475569] my-3 leading-relaxed">
                 Gagal memproses tiket antrean. Silakan coba kembali atau hubungi petugas.
             </p>
-            <button type="button" onclick="closeErrorModal()"
-                class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-2xl transition text-sm">
-                Tutup & Coba Lagi
+            <button type="button" id="btn-close-error-modal"
+                    class="w-full rounded-md bg-[#0A2540] hover:bg-[#0F172A] py-2.5 text-sm font-semibold text-white">
+                Tutup &amp; Coba Lagi
             </button>
         </div>
-    </div>
+    </dialog>
 
-    <!-- Container Cetak Struk Fisik (58mm / 80mm ESC/POS via @media print) -->
-    <div id="ticket-print-area" class="hidden">
+    {{-- Physical Thermal Receipt Area (58mm / 80mm @media print) --}}
+    <div id="ticket-print-area" class="print-only">
         <div style="text-align: center; font-weight: bold; padding-bottom: 4px; border-bottom: 1px dashed #000;">
             BADAN PUSAT STATISTIK<br>
             PST BPS KOTA TASIKMALAYA
@@ -200,81 +174,111 @@
             Terima kasih atas kunjungan Anda.
         </div>
     </div>
+@endsection
 
-    <script>
-        // Jam digital realtime
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            document.getElementById('live-date').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const clockEl = document.getElementById('live-clock');
+        const dateEl = document.getElementById('live-date');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const ticketDialog = document.getElementById('ticket-modal');
+        const errorDialog = document.getElementById('error-modal');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
         let isSubmitting = false;
         let countdownInterval = null;
-        let remainingSeconds = 5;
+
+        function updateClock() {
+            const now = new Date();
+            if (clockEl) {
+                clockEl.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+            if (dateEl) {
+                dateEl.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            }
+        }
+        updateClock();
+        window.setInterval(updateClock, 1000);
 
         function setButtonsDisabled(disabled) {
-            const buttons = document.querySelectorAll('.service-btn');
-            buttons.forEach(btn => {
+            document.querySelectorAll('.service-btn').forEach((btn) => {
                 btn.disabled = disabled;
-                if (disabled) {
-                    btn.classList.add('opacity-50', 'pointer-events-none');
-                } else {
-                    btn.classList.remove('opacity-50', 'pointer-events-none');
-                }
+                btn.classList.toggle('opacity-50', disabled);
+                btn.classList.toggle('pointer-events-none', disabled);
             });
         }
 
-        async function takeTicket(serviceId, serviceName, codePrefix) {
-            // Cegah klik ganda
+        function setLoadingVisible(visible) {
+            if (!loadingOverlay) return;
+            loadingOverlay.classList.toggle('hidden', !visible);
+            loadingOverlay.classList.toggle('flex', visible);
+        }
+
+        function resetKioskState() {
+            window.clearInterval(countdownInterval);
+            isSubmitting = false;
+            setButtonsDisabled(false);
+        }
+
+        ticketDialog?.addEventListener('close', resetKioskState);
+        errorDialog?.addEventListener('close', resetKioskState);
+
+        document.getElementById('btn-close-ticket-modal')?.addEventListener('click', () => ticketDialog?.close(''));
+        document.getElementById('btn-close-error-modal')?.addEventListener('click', () => errorDialog?.close(''));
+
+        function startCountdown() {
+            window.clearInterval(countdownInterval);
+            let remaining = 5;
+            const progressEl = document.getElementById('countdown-progress');
+            const numberEl = document.getElementById('countdown-number');
+
+            if (numberEl) numberEl.textContent = String(remaining);
+            if (progressEl) progressEl.style.width = '100%';
+
+            countdownInterval = window.setInterval(() => {
+                remaining -= 1;
+                if (numberEl) numberEl.textContent = String(Math.max(0, remaining));
+                if (progressEl) progressEl.style.width = `${Math.max(0, (remaining / 5) * 100)}%`;
+                if (remaining <= 0) {
+                    window.clearInterval(countdownInterval);
+                    if (ticketDialog?.open) ticketDialog.close('');
+                }
+            }, 1000);
+        }
+
+        async function takeTicket(serviceId) {
             if (isSubmitting) return;
             isSubmitting = true;
             setButtonsDisabled(true);
-
-            // Tampilkan loading overlay
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            document.getElementById('loading-overlay').classList.add('flex');
+            setLoadingVisible(true);
 
             try {
                 const response = await fetch("{{ route('kiosk.ticket') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Accept': 'application/json'
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
                     },
-                    body: JSON.stringify({ service_id: serviceId })
+                    body: JSON.stringify({ service_id: serviceId }),
                 });
-
                 const result = await response.json();
-
-                // Sembunyikan loading
-                document.getElementById('loading-overlay').classList.add('hidden');
-                document.getElementById('loading-overlay').classList.remove('flex');
+                setLoadingVisible(false);
 
                 if (response.ok && result.status === 'success') {
                     const ticket = result.data;
+                    document.getElementById('modal-ticket-code').textContent = ticket.ticket_code;
+                    document.getElementById('modal-service-name').textContent = ticket.service_name;
+                    document.getElementById('modal-ticket-time').textContent = ticket.created_at;
+                    document.getElementById('modal-ticket-ahead').textContent = `${ticket.waiting_ahead} Orang`;
 
-                    // Isi modal preview
-                    document.getElementById('modal-ticket-code').innerText = ticket.ticket_code;
-                    document.getElementById('modal-service-name').innerText = ticket.service_name;
-                    document.getElementById('modal-ticket-time').innerText = ticket.created_at;
-                    document.getElementById('modal-ticket-ahead').innerText = `${ticket.waiting_ahead} Orang`;
+                    document.getElementById('print-ticket-code').textContent = ticket.ticket_code;
+                    document.getElementById('print-service-name').textContent = ticket.service_name;
+                    document.getElementById('print-ticket-time').textContent = ticket.created_at;
+                    document.getElementById('print-ticket-ahead').textContent = `${ticket.waiting_ahead} Orang`;
 
-                    // Isi kontainer cetak fisik termal
-                    document.getElementById('print-ticket-code').innerText = ticket.ticket_code;
-                    document.getElementById('print-service-name').innerText = ticket.service_name;
-                    document.getElementById('print-ticket-time').innerText = ticket.created_at;
-                    document.getElementById('print-ticket-ahead').innerText = `${ticket.waiting_ahead} Orang`;
-
-                    // Tampilkan modal tiket
-                    const modal = document.getElementById('ticket-modal');
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-
-                    // Jika bukan mode mock print (hardware printer termal fisik terhubung), picu dialog cetak otomatis
+                    ticketDialog?.showModal();
                     if (!ticket.mock_print) {
                         try {
                             window.print();
@@ -282,66 +286,26 @@
                             console.warn('Silent print invocation:', e);
                         }
                     }
-
-                    // Mulai countdown reset otomatis 5 detik
                     startCountdown();
                 } else {
-                    showError(result.message || 'Gagal menerbitkan nomor antrean. Silakan coba kembali.');
+                    document.getElementById('error-modal-message').textContent =
+                        result.message || 'Gagal menerbitkan nomor antrean. Silakan coba kembali.';
+                    errorDialog?.showModal();
                 }
             } catch (err) {
                 console.error(err);
-                document.getElementById('loading-overlay').classList.add('hidden');
-                document.getElementById('loading-overlay').classList.remove('flex');
-                showError('Terjadi kendala jaringan saat berkomunikasi dengan peladen sistem antrean.');
+                setLoadingVisible(false);
+                document.getElementById('error-modal-message').textContent =
+                    'Terjadi kendala jaringan saat berkomunikasi dengan peladen sistem antrean.';
+                errorDialog?.showModal();
             }
         }
 
-        function startCountdown() {
-            clearInterval(countdownInterval);
-            remainingSeconds = 5;
-            const progressEl = document.getElementById('countdown-progress');
-            const numberEl = document.getElementById('countdown-number');
-
-            numberEl.innerText = remainingSeconds;
-            progressEl.style.width = '100%';
-
-            countdownInterval = setInterval(() => {
-                remainingSeconds--;
-                if (numberEl) numberEl.innerText = remainingSeconds;
-                if (progressEl) progressEl.style.width = `${(remainingSeconds / 5) * 100}%`;
-
-                if (remainingSeconds <= 0) {
-                    clearInterval(countdownInterval);
-                    closeModal();
-                }
-            }, 1000);
-        }
-
-        function closeModal() {
-            clearInterval(countdownInterval);
-            const modal = document.getElementById('ticket-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-
-            // Pulihkan kembali tombol layanan
-            isSubmitting = false;
-            setButtonsDisabled(false);
-        }
-
-        function showError(message) {
-            document.getElementById('error-modal-message').innerText = message;
-            const errorModal = document.getElementById('error-modal');
-            errorModal.classList.remove('hidden');
-            errorModal.classList.add('flex');
-        }
-
-        function closeErrorModal() {
-            const errorModal = document.getElementById('error-modal');
-            errorModal.classList.add('hidden');
-            errorModal.classList.remove('flex');
-            isSubmitting = false;
-            setButtonsDisabled(false);
-        }
-    </script>
-</body>
-</html>
+        document.querySelectorAll('.service-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                takeTicket(Number(btn.dataset.serviceId));
+            });
+        });
+    });
+</script>
+@endpush

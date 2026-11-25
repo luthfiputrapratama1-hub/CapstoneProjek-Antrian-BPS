@@ -45,4 +45,18 @@ class KioskTicketTest extends TestCase
               ->assertJsonPath('data.ticket_code', 'B-001')
               ->assertJsonPath('data.waiting_ahead', 0);
     }
+
+    public function test_kiosk_page_fixes_print_visibility_uses_native_dialogs_and_has_no_cdn_or_emojis(): void
+    {
+        $response = $this->get('/kiosk');
+        $response->assertStatus(200);
+
+        $html = $response->getContent();
+        $this->assertStringNotContainsString('cdn.tailwindcss.com', $html);
+        $this->assertStringNotContainsString('⚠️', $html);
+        $this->assertStringContainsString('<dialog id="ticket-modal"', $html);
+        $this->assertStringContainsString('<dialog id="error-modal"', $html);
+        $this->assertStringContainsString('id="ticket-print-area" class="print-only"', $html);
+        $this->assertStringNotContainsString('id="ticket-print-area" class="hidden"', $html);
+    }
 }
