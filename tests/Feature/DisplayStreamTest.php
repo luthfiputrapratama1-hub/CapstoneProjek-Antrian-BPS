@@ -30,4 +30,21 @@ class DisplayStreamTest extends TestCase
         $response->assertHeader('Content-Type', 'text/event-stream; charset=UTF-8');
         $response->assertHeader('Cache-Control', 'no-cache, private');
     }
+
+    public function test_display_page_uses_dark_board_hidden_debug_panel_and_no_cdn_or_emojis(): void
+    {
+        $response = $this->get('/display');
+        $response->assertStatus(200);
+
+        $html = $response->getContent();
+        $this->assertStringNotContainsString('cdn.tailwindcss.com', $html);
+        $this->assertStringNotContainsString('animate-bounce', $html);
+        $this->assertStringNotContainsString('animate-ping', $html);
+        $this->assertStringNotContainsString('🔊', $html);
+        $this->assertStringNotContainsString('📊', $html);
+        $this->assertStringNotContainsString('🕒', $html);
+        $this->assertStringContainsString('id="audio-debug-panel" class="hidden', $html);
+        $this->assertStringContainsString('resetAllCounterCards', $html);
+        $this->assertStringContainsString('renderRecentCalls', $html);
+    }
 }

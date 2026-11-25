@@ -1,226 +1,201 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Layar Monitor Antrean Ruang Tunggu - PST BPS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @keyframes pulse-call {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            50% { transform: scale(1.02); box-shadow: 0 0 0 16px rgba(239, 68, 68, 0); }
-        }
-        .anim-call {
-            animation: pulse-call 1.4s infinite;
-        }
-    </style>
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-none font-sans overflow-x-hidden select-none">
-    <!-- Header TV Display -->
-    <header class="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-b-2 border-blue-800 py-3.5 px-8 flex justify-between items-center shadow-2xl">
-        <div class="flex items-center space-x-5">
-            <a href="{{ route('home') }}" title="Kembali ke Beranda Portal PST"
-                class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-blue-900 font-black text-3xl shadow-lg border-2 border-blue-300 hover:scale-105 transition-transform duration-150">
-                BPS
-            </a>
-            <div>
-                <h1 class="text-2xl md:text-3xl font-black tracking-wide uppercase text-white flex items-center space-x-3">
-                    <span>BADAN PUSAT STATISTIK</span>
-                    <span class="text-xs bg-emerald-600 text-white px-3 py-0.5 rounded-full font-bold uppercase tracking-wider shadow">PST KOTA TASIKMALAYA</span>
-                </h1>
-                <p class="text-blue-200 text-sm font-semibold mt-0.5">Pelayanan Statistik Terpadu - Informasi Antrean Ruang Tunggu</p>
-            </div>
+@extends('layouts.screen', ['screenTheme' => 'dark'])
+
+@section('title', 'Layar Monitor Antrean Ruang Tunggu — PST BPS Kota Tasikmalaya')
+
+@section('content')
+    <header class="bg-[#0D1420] border-b border-[#1F2937]">
+        <div class="h-1 w-full flex" aria-hidden="true">
+            <span class="flex-1 bg-[#0B4F9C]"></span>
+            <span class="flex-1 bg-[#15803D]"></span>
+            <span class="flex-1 bg-[#EA580C]"></span>
         </div>
+        <div class="max-w-[1700px] mx-auto px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+            <x-bps-brand
+                title="BADAN PUSAT STATISTIK"
+                subtitle="Pelayanan Statistik Terpadu · Informasi Antrean Ruang Tunggu"
+                :dark="true"
+                size="lg"
+            />
 
-        <div class="flex items-center space-x-4">
-            <!-- Tombol Aktivasi Audio -->
-            <button id="btn-enable-audio" type="button" onclick="enableAudioEngine()"
-                class="bg-amber-500 hover:bg-amber-400 text-slate-900 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-lg flex items-center space-x-2 animate-bounce transition cursor-pointer">
-                <span class="text-base">🔊</span>
-                <span>AKTIFKAN SUARA TV</span>
-            </button>
-            <div id="audio-active-badge" class="hidden text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-950 border border-emerald-500 text-emerald-300 items-center space-x-1.5 shadow">
-                <span>🔊</span>
-                <span>Audio Aktif</span>
-            </div>
+            <div class="flex items-center gap-3">
+                <button id="btn-enable-audio" type="button"
+                        class="inline-flex items-center gap-2 rounded-md bg-[#F59E0B] hover:bg-amber-400 px-3.5 py-2 text-xs font-bold text-[#090E17] transition-colors">
+                    <x-icon name="volume-on" class="w-4 h-4" />
+                    <span>AKTIFKAN SUARA TV</span>
+                </button>
 
-            <!-- Jam Digital Realtime -->
-            <div class="text-right bg-blue-900/60 border border-blue-700/60 rounded-2xl px-5 py-2 shadow-inner">
-                <div id="display-clock" class="text-3xl font-mono font-black tracking-widest text-emerald-400">--:--:--</div>
-                <div id="display-date" class="text-blue-200 text-xs font-semibold tracking-wide">--</div>
+                <div id="audio-active-badge"
+                     class="hidden items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-950/60 px-3 py-1.5 text-xs font-semibold text-emerald-300">
+                    <x-icon name="volume-on" class="w-4 h-4" />
+                    <span>Audio Aktif</span>
+                </div>
+
+                <span id="connection-status"
+                      class="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-950/60 px-3 py-1.5 text-xs font-semibold text-emerald-300">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400" aria-hidden="true"></span>
+                    <span>SSE Terhubung</span>
+                </span>
+
+                <div class="text-right rounded-lg border border-[#1F2937] bg-[#111827] px-4 py-1.5 tabular-nums-strict">
+                    <div id="display-clock" class="text-2xl font-mono font-bold tracking-wider text-[#F59E0B]">--:--:--</div>
+                    <div id="display-date" class="text-[11px] text-slate-300">--</div>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Display Grid -->
-    <main class="flex-1 max-w-[1700px] w-full mx-auto p-6 space-y-6">
-        <!-- Banner Indikator Koneksi & Ringkasan -->
-        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-            <h2 class="text-xl font-black tracking-wide text-blue-300 uppercase flex items-center space-x-2">
-                <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
-                <span>Status Pemanggilan Meja Pelayanan</span>
-            </h2>
-            <div class="flex items-center space-x-3">
-                <span id="connection-status" class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-950 border border-emerald-600 text-emerald-400 transition">
-                    ● Realtime SSE Terhubung
-                </span>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            <!-- Kolom Kiri: Kartu Meja Loket (2/3 Layar) -->
-            <div class="lg:col-span-2 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <main class="flex-1 max-w-[1700px] w-full mx-auto px-6 py-5 flex flex-col gap-5">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch flex-1">
+            {{-- Left 2/3: Active Counter Cards + Service Waiting Strip --}}
+            <div class="lg:col-span-2 flex flex-col justify-between gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 flex-1">
                     @foreach($counters as $counter)
-                        <div id="counter-card-{{ $counter->counter_number }}"
-                            class="bg-slate-800/95 border-2 border-slate-700 rounded-3xl p-6 shadow-2xl relative overflow-hidden transition-all duration-300">
-                            <div class="flex justify-between items-center mb-4">
-                                <span class="text-xl font-black tracking-wider text-slate-200 uppercase flex items-center space-x-2">
-                                    <span class="w-3 h-3 rounded-full bg-blue-500"></span>
-                                    <span>{{ $counter->name }}</span>
-                                </span>
+                        <section id="counter-card-{{ $counter->counter_number }}"
+                                 data-counter-card="{{ $counter->counter_number }}"
+                                 aria-labelledby="counter-heading-{{ $counter->counter_number }}"
+                                 class="rounded-xl border border-[#1F2937] bg-[#111827] p-5 flex flex-col justify-between transition-colors">
+                            <div class="flex items-center justify-between gap-3">
+                                <h2 id="counter-heading-{{ $counter->counter_number }}" class="text-lg font-bold tracking-wide text-slate-100 uppercase">
+                                    {{ $counter->name }}
+                                </h2>
                                 <span id="counter-badge-{{ $counter->counter_number }}"
-                                    class="px-3.5 py-1 rounded-full text-xs font-black uppercase bg-slate-700 text-slate-300 tracking-wider">
+                                      class="rounded-md border border-[#374151] bg-[#1F2937] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-300">
                                     Menunggu
                                 </span>
                             </div>
 
-                            <div class="text-center py-7 bg-slate-950/70 rounded-2xl border border-slate-700/60 shadow-inner">
-                                <div class="text-xs uppercase tracking-widest text-slate-400 font-bold">Nomor Antrean</div>
+                            <div class="my-4 rounded-lg border border-[#1F2937] bg-[#090E17] py-6 px-4 text-center">
+                                <div class="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Nomor Antrean</div>
                                 <div id="counter-ticket-{{ $counter->counter_number }}"
-                                    class="text-6xl md:text-7xl font-mono font-black text-amber-400 my-2 tracking-wider">
+                                     class="text-6xl xl:text-7xl font-mono font-bold text-[#F59E0B] my-2 tracking-wider tabular-nums-strict">
                                     ---
                                 </div>
                                 <div id="counter-service-{{ $counter->counter_number }}"
-                                    class="text-sm font-bold text-blue-200">
+                                     class="text-sm font-medium text-slate-300 truncate">
                                     Belum ada antrean
                                 </div>
                             </div>
-                        </div>
+                        </section>
                     @endforeach
                 </div>
 
-                <!-- Baris Kartu Informasi Antrean Menunggu per Kategori Layanan -->
-                <div class="bg-slate-800/80 border border-slate-700 rounded-3xl p-5 shadow-xl">
-                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center space-x-2">
-                        <span>📊</span>
-                        <span>Jumlah Antrean Menunggu per Layanan PST Hari Ini</span>
-                    </h3>
-                    <div id="service-waiting-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {{-- Waiting Count Strip per Service --}}
+                <section aria-labelledby="waiting-strip-heading" class="rounded-xl border border-[#1F2937] bg-[#111827] p-4">
+                    <h2 id="waiting-strip-heading" class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+                        Antrean Menunggu per Layanan PST Hari Ini
+                    </h2>
+                    <div id="service-waiting-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         @foreach($services as $srv)
-                            <div id="service-card-{{ $srv->id }}" class="bg-slate-900/80 border border-slate-700/80 rounded-2xl p-3.5 text-center shadow">
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="w-6 h-6 rounded-lg bg-blue-900 text-blue-200 text-xs font-black flex items-center justify-center">
+                            <div id="service-card-{{ $srv->id }}" class="rounded-lg border border-[#1F2937] bg-[#090E17] px-3.5 py-2.5 flex items-center justify-between gap-2">
+                                <div class="min-w-0">
+                                    <span class="inline-block rounded bg-[#0B4F9C] px-1.5 py-0.5 font-mono text-[11px] font-bold text-white">
                                         {{ $srv->code_prefix }}
                                     </span>
-                                    <span id="service-count-{{ $srv->id }}" class="text-xl font-mono font-black text-amber-400">
-                                        {{ $srv->queues_count }}
-                                    </span>
+                                    <div class="text-xs font-medium text-slate-300 truncate mt-1" title="{{ $srv->name }}">
+                                        {{ $srv->name }}
+                                    </div>
                                 </div>
-                                <div class="text-[11px] font-semibold text-slate-300 truncate text-left" title="{{ $srv->name }}">
-                                    {{ $srv->name }}
-                                </div>
+                                <span id="service-count-{{ $srv->id }}" class="text-2xl font-mono font-bold text-[#F59E0B] tabular-nums-strict">
+                                    {{ $srv->queues_count }}
+                                </span>
                             </div>
                         @endforeach
                     </div>
-                </div>
+                </section>
             </div>
 
-            <!-- Kolom Kanan: 5 Riwayat Panggilan Terakhir (1/3 Layar) -->
-            <div class="bg-slate-800/95 border-2 border-slate-700 rounded-3xl p-6 shadow-2xl flex flex-col h-full">
-                <h3 class="text-lg font-black tracking-wide text-slate-200 uppercase mb-4 border-b border-slate-700 pb-3 flex items-center justify-between">
-                    <span class="flex items-center space-x-2">
-                        <span>🕒</span>
-                        <span>Riwayat 5 Panggilan Terakhir</span>
-                    </span>
-                    <span class="text-[11px] font-bold text-slate-400">Realtime</span>
-                </h3>
+            {{-- Right 1/3: Recent 5 Calls --}}
+            <aside aria-labelledby="recent-calls-heading" class="rounded-xl border border-[#1F2937] bg-[#111827] p-5 flex flex-col">
+                <div class="flex items-center justify-between border-b border-[#1F2937] pb-3 mb-4">
+                    <h2 id="recent-calls-heading" class="text-sm font-bold uppercase tracking-wider text-slate-200">
+                        Riwayat 5 Panggilan Terakhir
+                    </h2>
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Realtime</span>
+                </div>
 
-                <div id="recent-calls-list" class="space-y-3 flex-1">
+                <div id="recent-calls-list" class="space-y-2.5 flex-1">
                     @forelse($recentQueues as $rq)
-                        <div class="bg-slate-900/80 border border-slate-700/80 rounded-2xl p-3.5 flex justify-between items-center shadow">
-                            <div>
-                                <span class="text-2xl font-mono font-black text-amber-400 tracking-wider">{{ $rq->ticket_code }}</span>
-                                <div class="text-xs text-slate-400 font-medium">{{ $rq->service?->name ?? 'Layanan PST' }}</div>
+                        <div class="rounded-lg border border-[#1F2937] bg-[#090E17] px-3.5 py-3 flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <span class="text-xl font-mono font-bold text-[#F59E0B] tracking-wider tabular-nums-strict">{{ $rq->ticket_code }}</span>
+                                <div class="text-xs text-slate-300 truncate">{{ $rq->service?->name ?? 'Layanan PST' }}</div>
                             </div>
-                            <div class="text-right">
-                                <span class="inline-block px-3 py-1 rounded-xl bg-blue-900/80 border border-blue-600 text-blue-200 text-xs font-black uppercase">
+                            <div class="text-right shrink-0">
+                                <span class="inline-block rounded-md border border-blue-500/30 bg-blue-950/70 px-2.5 py-1 text-xs font-semibold text-blue-200">
                                     {{ $rq->counter?->name ?? 'Loket' }}
                                 </span>
-                                <div class="text-[10px] text-slate-400 mt-1 font-mono">{{ $rq->updated_at->format('H:i') }} WIB</div>
+                                <div class="text-[11px] font-mono text-slate-400 mt-1 tabular-nums-strict">{{ $rq->updated_at->format('H:i') }} WIB</div>
                             </div>
                         </div>
                     @empty
-                        <div id="empty-recent-notice" class="text-center py-16 text-slate-500 text-sm">
+                        <div id="empty-recent-notice" class="py-16 text-center text-xs text-slate-400">
                             Belum ada riwayat antrean hari ini
                         </div>
                     @endforelse
                 </div>
-            </div>
+            </aside>
         </div>
     </main>
 
-    <!-- Footer TV Running Text -->
-    <footer class="bg-blue-950 border-t-2 border-blue-800 py-3 px-8 flex items-center overflow-hidden shadow-2xl">
-        <span class="bg-amber-500 text-slate-950 text-xs font-black uppercase px-3 py-1 rounded-lg shrink-0 mr-4 shadow tracking-wider">
+    {{-- Ticker Footer + Subtle Technician Audio Panel Toggle --}}
+    <footer class="bg-[#0D1420] border-t border-[#1F2937] px-6 py-2.5 flex items-center gap-4">
+        <span class="rounded bg-[#F59E0B] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#090E17] shrink-0">
             INFO PST BPS
         </span>
-        <div class="whitespace-nowrap overflow-hidden text-sm text-blue-100 font-semibold tracking-wide">
-            Selamat datang di Pelayanan Statistik Terpadu Badan Pusat Statistik Kota Tasikmalaya. PST melayani Konsultasi Statistik, Rekomendasi Kegiatan Statistik, Permintaan Data Mikro, dan Perpustakaan Statistik. Harap persiapkan kartu identitas Anda saat dipanggil ke meja loket.
+
+        <div class="tv-ticker-viewport text-sm font-medium text-slate-200">
+            <div class="tv-ticker-track">
+                <span class="pr-12">Selamat datang di Pelayanan Statistik Terpadu Badan Pusat Statistik Kota Tasikmalaya. PST melayani Konsultasi Statistik, Rekomendasi Kegiatan Statistik, Permintaan Data Mikro &amp; Publikasi, serta Perpustakaan Statistik. Harap persiapkan identitas Anda saat dipanggil ke loket.</span>
+                <span class="tv-ticker-duplicate pr-12" aria-hidden="true">Selamat datang di Pelayanan Statistik Terpadu Badan Pusat Statistik Kota Tasikmalaya. PST melayani Konsultasi Statistik, Rekomendasi Kegiatan Statistik, Permintaan Data Mikro &amp; Publikasi, serta Perpustakaan Statistik. Harap persiapkan identitas Anda saat dipanggil ke loket.</span>
+            </div>
         </div>
+
+        <button id="btn-toggle-debug"
+                type="button"
+                title="Pengaturan &amp; Uji Audio (Alt+D)"
+                aria-label="Buka panel uji audio teknisi"
+                aria-expanded="false"
+                aria-controls="audio-debug-panel"
+                class="rounded-md border border-[#1F2937] bg-[#111827] p-1.5 text-slate-400 hover:text-white shrink-0">
+            <x-icon name="sliders" class="w-4 h-4" />
+        </button>
     </footer>
 
-    <!-- Panel Uji Coba Audio (Bisa Diciutkan / Disembunyikan) -->
-    <div class="bg-slate-950 border-t border-slate-800 text-xs text-slate-400">
-        <div class="px-6 py-2 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <button type="button" onclick="toggleAudioPanel()" class="text-slate-400 hover:text-white font-bold flex items-center space-x-1">
-                    <span id="panel-toggle-icon">▶</span>
-                    <span>Panel Pengujian Audio (Uji Coba Pengembang)</span>
-                </button>
-                <span id="audio-engine-state" class="text-amber-400 font-semibold">● Menunggu Interaksi Pengguna</span>
+    {{-- Hidden Technician Audio Test Drawer (Alt+D) --}}
+    <div id="audio-debug-panel" class="hidden bg-[#090E17] border-t border-[#1F2937] px-6 py-3 text-xs text-slate-300">
+        <div class="max-w-[1700px] mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="font-semibold text-slate-200">Uji Audio Teknisi:</span>
+                <span id="audio-engine-state" class="text-[#F59E0B] font-medium">Menunggu Aktivasi</span>
                 <span id="audio-now-playing" class="text-slate-400 italic"></span>
             </div>
-            <div class="text-[11px] text-slate-500">
-                Mode TV Produksi: Sembunyikan panel ini
-            </div>
-        </div>
-
-        <div id="audio-debug-content" class="hidden px-6 py-3 border-t border-slate-800 bg-slate-900/90 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center space-x-2">
-                <span class="text-slate-300 font-bold">Uji Kombinasi Suara:</span>
-                <button onclick="testAnnounce('A', 1, 1)" class="bg-blue-800 hover:bg-blue-700 text-white px-3 py-1 rounded-lg font-bold transition">
-                    Panggil A-001 (Loket 1)
-                </button>
-                <button onclick="testAnnounce('B', 15, 2)" class="bg-indigo-800 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg font-bold transition">
-                    Panggil B-015 (Loket 2)
-                </button>
-                <button onclick="testAnnounce('C', 105, 1)" class="bg-amber-700 hover:bg-amber-600 text-white px-3 py-1 rounded-lg font-bold transition">
-                    Panggil C-105 (Loket 1)
-                </button>
-                <button onclick="testAnnounce('D', 8, 2)" class="bg-emerald-800 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg font-bold transition">
-                    Panggil D-008 (Loket 2)
-                </button>
-            </div>
-            <div>
-                <button onclick="testChimeOnly()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded-lg font-semibold transition">
-                    🔔 Uji Ding-Dong Saja
-                </button>
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" data-test-announce="A,1,1" class="rounded bg-[#0B4F9C] hover:bg-[#083D7A] px-2.5 py-1 font-semibold text-white">Panggil A-001 (Loket 1)</button>
+                <button type="button" data-test-announce="B,15,2" class="rounded bg-[#15803D] hover:bg-emerald-700 px-2.5 py-1 font-semibold text-white">Panggil B-015 (Loket 2)</button>
+                <button type="button" data-test-announce="C,105,1" class="rounded bg-[#C2410C] hover:bg-orange-700 px-2.5 py-1 font-semibold text-white">Panggil C-105 (Loket 1)</button>
+                <button type="button" id="btn-test-chime" class="rounded border border-[#374151] bg-[#111827] hover:bg-[#1F2937] px-2.5 py-1 font-semibold text-slate-200">Uji Ding-Dong</button>
             </div>
         </div>
     </div>
+@endsection
 
-    <script>
-        // Jam digital realtime
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const clockEl = document.getElementById('display-clock');
+        const dateEl = document.getElementById('display-date');
+        const statusBadge = document.getElementById('connection-status');
+        const debugPanel = document.getElementById('audio-debug-panel');
+        const debugToggleBtn = document.getElementById('btn-toggle-debug');
+
         function updateDisplayClock() {
             const now = new Date();
-            document.getElementById('display-clock').innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            document.getElementById('display-date').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            if (clockEl) clockEl.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            if (dateEl) dateEl.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
-        setInterval(updateDisplayClock, 1000);
         updateDisplayClock();
+        window.setInterval(updateDisplayClock, 1000);
 
-        // Status Audio Engine & Browser Autoplay Unlock
         let audioCtx = null;
         let isAudioUnlocked = false;
 
@@ -233,37 +208,28 @@
                     audioCtx.resume();
                 }
                 isAudioUnlocked = true;
-
-                // Perbarui tampilan tombol aktivasi
-                document.getElementById('btn-enable-audio').classList.add('hidden');
+                document.getElementById('btn-enable-audio')?.classList.add('hidden');
                 const badge = document.getElementById('audio-active-badge');
-                badge.classList.remove('hidden');
-                badge.classList.add('flex');
-
-                document.getElementById('audio-engine-state').innerText = '● Audio Aktif (Siap Memutar)';
-                document.getElementById('audio-engine-state').className = 'text-emerald-400 font-semibold';
-
-                // Bunyikan chime tes lembut penanda audio aktif
+                badge?.classList.remove('hidden');
+                badge?.classList.add('inline-flex');
+                const stateEl = document.getElementById('audio-engine-state');
+                if (stateEl) {
+                    stateEl.textContent = 'Audio Aktif';
+                    stateEl.className = 'text-emerald-400 font-semibold';
+                }
                 playChime(0.15);
             } catch (e) {
                 console.warn('Audio activation error:', e);
             }
         }
 
-        // Web Audio Synthesizer untuk Nada Chime (Ding-Dong)
         function playChime(volume = 0.3) {
             return new Promise((resolve) => {
                 try {
-                    if (!audioCtx) {
-                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    }
-                    if (audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                    }
+                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
 
                     const now = audioCtx.currentTime;
-
-                    // Nada 1: D5 (587.33 Hz)
                     const osc1 = audioCtx.createOscillator();
                     const gain1 = audioCtx.createGain();
                     osc1.type = 'sine';
@@ -275,11 +241,10 @@
                     osc1.start(now);
                     osc1.stop(now + 0.6);
 
-                    // Nada 2: A5 (880.00 Hz)
                     const osc2 = audioCtx.createOscillator();
                     const gain2 = audioCtx.createGain();
                     osc2.type = 'sine';
-                    osc2.frequency.setValueAtTime(880.00, now + 0.4);
+                    osc2.frequency.setValueAtTime(880.0, now + 0.4);
                     gain2.gain.setValueAtTime(volume, now + 0.4);
                     gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
                     osc2.connect(gain2);
@@ -287,7 +252,7 @@
                     osc2.start(now + 0.4);
                     osc2.stop(now + 1.2);
 
-                    setTimeout(resolve, 1100);
+                    window.setTimeout(resolve, 1100);
                 } catch (e) {
                     console.warn('Audio Context Error:', e);
                     resolve();
@@ -295,7 +260,6 @@
             });
         }
 
-        // Web Speech Synthesizer Bahasa Indonesia
         function speakText(text) {
             return new Promise((resolve) => {
                 if (!('speechSynthesis' in window)) {
@@ -306,18 +270,25 @@
                 utterance.lang = 'id-ID';
                 utterance.rate = 0.88;
                 utterance.pitch = 1.0;
-
                 utterance.onend = () => resolve();
                 utterance.onerror = () => resolve();
-
                 window.speechSynthesis.speak(utterance);
             });
         }
 
-        // Antrean Audio FIFO (Mencegah benturan audio jika dua loket memanggil bersamaan)
         const audioQueue = [];
         let isPlayingAudio = false;
-        const processedCallKeys = new Set();
+        const processedCallKeys = [];
+        const MAX_CALL_KEYS = 200;
+
+        function rememberCallKey(key) {
+            if (processedCallKeys.includes(key)) return false;
+            processedCallKeys.push(key);
+            if (processedCallKeys.length > MAX_CALL_KEYS) {
+                processedCallKeys.shift();
+            }
+            return true;
+        }
 
         async function processAudioQueue() {
             if (isPlayingAudio || audioQueue.length === 0) return;
@@ -325,214 +296,199 @@
 
             const item = audioQueue.shift();
             const textToSpeak = `Nomor antrean, ${item.prefix}, ${item.number}, menuju ${item.counterName}`;
-
             const playingEl = document.getElementById('audio-now-playing');
-            if (playingEl) playingEl.innerText = `(${textToSpeak})`;
+            if (playingEl) playingEl.textContent = `(${textToSpeak})`;
 
-            // 1. Bunyikan nada pembuka Ding-Dong
             await playChime(0.3);
-
-            // 2. Lafalkan nomor antrean dan loket tujuan dalam Bahasa Indonesia
             await speakText(textToSpeak);
 
-            if (playingEl) playingEl.innerText = '';
+            if (playingEl) playingEl.textContent = '';
             isPlayingAudio = false;
 
-            // Jika masih ada antrean audio berikutnya, jalankan dengan jeda 500ms
             if (audioQueue.length > 0) {
-                setTimeout(processAudioQueue, 500);
+                window.setTimeout(processAudioQueue, 500);
+            }
+        }
+
+        function setCounterBadge(badgeEl, status) {
+            if (!badgeEl) return;
+            if (status === 'calling') {
+                badgeEl.textContent = 'Dipanggil';
+                badgeEl.className = 'rounded-md border border-red-500/60 bg-red-600 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white';
+            } else if (status === 'serving') {
+                badgeEl.textContent = 'Melayani';
+                badgeEl.className = 'rounded-md border border-blue-500/50 bg-[#0B4F9C] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white';
+            } else {
+                badgeEl.textContent = 'Menunggu';
+                badgeEl.className = 'rounded-md border border-[#374151] bg-[#1F2937] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-300';
+            }
+        }
+
+        function resetAllCounterCards() {
+            document.querySelectorAll('[data-counter-card]').forEach((card) => {
+                const counterNum = card.dataset.counterCard;
+                const ticketEl = document.getElementById(`counter-ticket-${counterNum}`);
+                const serviceEl = document.getElementById(`counter-service-${counterNum}`);
+                const badgeEl = document.getElementById(`counter-badge-${counterNum}`);
+                if (ticketEl) ticketEl.textContent = '---';
+                if (serviceEl) serviceEl.textContent = 'Belum ada antrean';
+                setCounterBadge(badgeEl, 'idle');
+                card.classList.remove('tv-card-calling');
+            });
+        }
+
+        function applyActiveQueues(activeQueues) {
+            resetAllCounterCards();
+            if (!Array.isArray(activeQueues)) return;
+            activeQueues.forEach((q) => {
+                if (!q.counter) return;
+                const counterNum = q.counter.counter_number;
+                const card = document.getElementById(`counter-card-${counterNum}`);
+                const ticketEl = document.getElementById(`counter-ticket-${counterNum}`);
+                const serviceEl = document.getElementById(`counter-service-${counterNum}`);
+                const badgeEl = document.getElementById(`counter-badge-${counterNum}`);
+                if (ticketEl) ticketEl.textContent = q.ticket_code || '---';
+                if (serviceEl) serviceEl.textContent = q.service?.name || 'Layanan PST';
+                setCounterBadge(badgeEl, q.status);
+                card?.classList.toggle('tv-card-calling', q.status === 'calling');
+            });
+        }
+
+        function createRecentCallRow(ticketCode, serviceName, counterName, timeLabel) {
+            const row = document.createElement('div');
+            row.className = 'rounded-lg border border-[#1F2937] bg-[#090E17] px-3.5 py-3 flex items-center justify-between gap-3';
+
+            const left = document.createElement('div');
+            left.className = 'min-w-0';
+            const codeEl = document.createElement('span');
+            codeEl.className = 'text-xl font-mono font-bold text-[#F59E0B] tracking-wider tabular-nums-strict';
+            codeEl.textContent = ticketCode;
+            const srvEl = document.createElement('div');
+            srvEl.className = 'text-xs text-slate-300 truncate';
+            srvEl.textContent = serviceName;
+            left.append(codeEl, srvEl);
+
+            const right = document.createElement('div');
+            right.className = 'text-right shrink-0';
+            const counterEl = document.createElement('span');
+            counterEl.className = 'inline-block rounded-md border border-blue-500/30 bg-blue-950/70 px-2.5 py-1 text-xs font-semibold text-blue-200';
+            counterEl.textContent = counterName;
+            const timeEl = document.createElement('div');
+            timeEl.className = 'text-[11px] font-mono text-slate-400 mt-1 tabular-nums-strict';
+            timeEl.textContent = `${timeLabel} WIB`;
+            right.append(counterEl, timeEl);
+
+            row.append(left, right);
+            return row;
+        }
+
+        function renderRecentCalls(recentQueues) {
+            const list = document.getElementById('recent-calls-list');
+            if (!list || !Array.isArray(recentQueues)) return;
+
+            if (recentQueues.length === 0) {
+                const empty = document.createElement('div');
+                empty.id = 'empty-recent-notice';
+                empty.className = 'py-16 text-center text-xs text-slate-400';
+                empty.textContent = 'Belum ada riwayat antrean hari ini';
+                list.replaceChildren(empty);
+                return;
+            }
+
+            const nodes = recentQueues.slice(0, 5).map((rq) => {
+                const dateObj = rq.updated_at ? new Date(rq.updated_at) : new Date();
+                const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                return createRecentCallRow(
+                    rq.ticket_code || '---',
+                    rq.service?.name || 'Layanan PST',
+                    rq.counter?.name || 'Loket',
+                    timeStr
+                );
+            });
+            list.replaceChildren(...nodes);
+        }
+
+        function prependRecentCall(data) {
+            const list = document.getElementById('recent-calls-list');
+            if (!list) return;
+            document.getElementById('empty-recent-notice')?.remove();
+            const timeNow = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            list.prepend(createRecentCallRow(data.ticket_code, data.service_name, data.counter_name, timeNow));
+            while (list.children.length > 5) {
+                list.lastElementChild?.remove();
             }
         }
 
         function enqueueCall(data, shouldAnnounce = true) {
-            const callKey = `${data.ticket_code}-${data.counter_number}-${data.updated_at || Date.now()}`;
-
-            // Perbarui visual loket
-            updateCounterCard(data);
-            addToRecentList(data);
-
-            // Periksa apakah audio perlu disuarakan
-            if (shouldAnnounce && isAudioUnlocked && !processedCallKeys.has(callKey)) {
-                processedCallKeys.add(callKey);
-                audioQueue.push({
-                    ticketCode: data.ticket_code,
-                    prefix: data.code_prefix,
-                    number: data.ticket_number,
-                    counterNumber: data.counter_number,
-                    counterName: data.counter_name
-                });
-                processAudioQueue();
-            }
-        }
-
-        function updateCounterCard(data) {
             const card = document.getElementById(`counter-card-${data.counter_number}`);
             const ticketEl = document.getElementById(`counter-ticket-${data.counter_number}`);
             const serviceEl = document.getElementById(`counter-service-${data.counter_number}`);
             const badgeEl = document.getElementById(`counter-badge-${data.counter_number}`);
 
-            if (ticketEl) ticketEl.innerText = data.ticket_code;
-            if (serviceEl) serviceEl.innerText = data.service_name;
-            if (badgeEl) {
-                badgeEl.innerText = 'Dipanggil';
-                badgeEl.className = 'px-3.5 py-1 rounded-full text-xs font-black uppercase bg-red-600 text-white tracking-wider animate-pulse';
-            }
+            if (ticketEl) ticketEl.textContent = data.ticket_code;
+            if (serviceEl) serviceEl.textContent = data.service_name;
+            setCounterBadge(badgeEl, 'calling');
             if (card) {
-                card.classList.add('anim-call', 'border-red-500');
-                setTimeout(() => {
-                    card.classList.remove('anim-call', 'border-red-500');
-                }, 7000);
+                card.classList.add('tv-card-calling');
+                window.setTimeout(() => card.classList.remove('tv-card-calling'), 7000);
             }
-        }
+            prependRecentCall(data);
 
-        function addToRecentList(data) {
-            const list = document.getElementById('recent-calls-list');
-            const emptyNotice = document.getElementById('empty-recent-notice');
-            if (emptyNotice) emptyNotice.remove();
-
-            const timeNow = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            const itemHtml = `
-                <div class="bg-slate-900/80 border border-slate-700/80 rounded-2xl p-3.5 flex justify-between items-center shadow transition-all duration-300">
-                    <div>
-                        <span class="text-2xl font-mono font-black text-amber-400 tracking-wider">${data.ticket_code}</span>
-                        <div class="text-xs text-slate-400 font-medium">${data.service_name}</div>
-                    </div>
-                    <div class="text-right">
-                        <span class="inline-block px-3 py-1 rounded-xl bg-blue-900/80 border border-blue-600 text-blue-200 text-xs font-black uppercase">
-                            ${data.counter_name}
-                        </span>
-                        <div class="text-[10px] text-slate-400 mt-1 font-mono">${timeNow} WIB</div>
-                    </div>
-                </div>
-            `;
-            list.insertAdjacentHTML('afterbegin', itemHtml);
-
-            // Batasi tampilan maksimal 5 panggilan terakhir
-            while (list.children.length > 5) {
-                list.removeChild(list.lastChild);
+            const callKey = `${data.ticket_code}-${data.counter_number}-${data.updated_at || Date.now()}`;
+            if (shouldAnnounce && isAudioUnlocked && rememberCallKey(callKey)) {
+                audioQueue.push({
+                    prefix: data.code_prefix,
+                    number: data.ticket_number,
+                    counterName: data.counter_name,
+                });
+                processAudioQueue();
             }
         }
 
         function updateServiceWaitingCounts(services) {
-            if (!services || !Array.isArray(services)) return;
-            services.forEach(s => {
+            if (!Array.isArray(services)) return;
+            services.forEach((s) => {
                 const countEl = document.getElementById(`service-count-${s.id}`);
-                if (countEl) {
-                    countEl.innerText = s.queues_count ?? 0;
-                }
+                if (countEl) countEl.textContent = String(s.queues_count ?? 0);
             });
         }
 
-        // SSE Realtime & Fallback HTTP Polling
+        function setConnectionStatus(mode, text) {
+            if (!statusBadge) return;
+            const styles = {
+                sse: 'inline-flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-950/60 px-3 py-1.5 text-xs font-semibold text-emerald-300',
+                reconnecting: 'inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-950/60 px-3 py-1.5 text-xs font-semibold text-amber-300',
+                polling: 'inline-flex items-center gap-1.5 rounded-md border border-blue-500/40 bg-blue-950/60 px-3 py-1.5 text-xs font-semibold text-blue-200',
+            };
+            statusBadge.className = styles[mode] || styles.sse;
+            const label = statusBadge.querySelector('span:last-child');
+            if (label) label.textContent = text;
+        }
+
         let eventSource = null;
         let sseFailCount = 0;
         let pollingInterval = null;
-        const statusBadge = document.getElementById('connection-status');
 
-        function connectSSE() {
-            if (eventSource) {
-                eventSource.close();
-            }
-
-            eventSource = new EventSource("{{ route('display.stream') }}");
-
-            eventSource.addEventListener('initial-state', function(e) {
-                try {
-                    const data = JSON.parse(e.data);
-                    if (data.active_queues) {
-                        data.active_queues.forEach(q => {
-                            if (q.counter) {
-                                const ticketEl = document.getElementById(`counter-ticket-${q.counter.counter_number}`);
-                                const serviceEl = document.getElementById(`counter-service-${q.counter.counter_number}`);
-                                const badgeEl = document.getElementById(`counter-badge-${q.counter.counter_number}`);
-                                if (ticketEl) ticketEl.innerText = q.ticket_code;
-                                if (serviceEl) serviceEl.innerText = q.service?.name ?? '';
-                                if (badgeEl) {
-                                    badgeEl.innerText = q.status === 'calling' ? 'Dipanggil' : 'Melayani';
-                                    badgeEl.className = q.status === 'calling'
-                                        ? 'px-3.5 py-1 rounded-full text-xs font-black uppercase bg-red-600 text-white tracking-wider'
-                                        : 'px-3.5 py-1 rounded-full text-xs font-black uppercase bg-blue-600 text-white tracking-wider';
-                                }
-                            }
-                        });
-                    }
-                    if (data.services) {
-                        updateServiceWaitingCounts(data.services);
-                    }
-                } catch (err) {
-                    console.error('Initial state error:', err);
-                }
-            });
-
-            eventSource.addEventListener('queue-called', function(e) {
-                try {
-                    const data = JSON.parse(e.data);
-                    enqueueCall(data, true);
-                } catch (err) {
-                    console.error('Queue called error:', err);
-                }
-            });
-
-            eventSource.onopen = function() {
-                sseFailCount = 0;
-                stopPolling();
-                statusBadge.innerText = '● Realtime SSE Terhubung';
-                statusBadge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-emerald-950 border border-emerald-600 text-emerald-400 transition';
-            };
-
-            eventSource.onerror = function() {
-                sseFailCount++;
-                statusBadge.innerText = '● Menghubungkan Ulang...';
-                statusBadge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-amber-950 border border-amber-600 text-amber-400 transition';
-
-                // Jika gagal lebih dari 2 kali, aktifkan HTTP fallback polling
-                if (sseFailCount >= 2 && !pollingInterval) {
-                    startFallbackPolling();
-                }
-            };
-        }
-
-        // Fallback HTTP Polling (2.5 detik)
         function startFallbackPolling() {
             if (pollingInterval) return;
-            statusBadge.innerText = '● Mode Cadangan (Polling Aktif)';
-            statusBadge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-indigo-950 border border-indigo-500 text-indigo-300 transition';
+            setConnectionStatus('polling', 'Mode Polling LAN');
 
-            pollingInterval = setInterval(async () => {
+            pollingInterval = window.setInterval(async () => {
                 try {
                     const res = await fetch("{{ route('display.poll') }}");
-                    if (res.ok) {
-                        const json = await res.json();
-                        if (json.status === 'success' && json.data) {
-                            // Update active queues
-                            if (json.data.active_queues) {
-                                json.data.active_queues.forEach(q => {
-                                    if (q.counter) {
-                                        const ticketEl = document.getElementById(`counter-ticket-${q.counter.counter_number}`);
-                                        const serviceEl = document.getElementById(`counter-service-${q.counter.counter_number}`);
-                                        const badgeEl = document.getElementById(`counter-badge-${q.counter.counter_number}`);
-                                        if (ticketEl) ticketEl.innerText = q.ticket_code;
-                                        if (serviceEl) serviceEl.innerText = q.service?.name ?? '';
-                                        if (badgeEl) {
-                                            badgeEl.innerText = q.status === 'calling' ? 'Dipanggil' : 'Melayani';
-                                            badgeEl.className = q.status === 'calling'
-                                                ? 'px-3.5 py-1 rounded-full text-xs font-black uppercase bg-red-600 text-white tracking-wider'
-                                                : 'px-3.5 py-1 rounded-full text-xs font-black uppercase bg-blue-600 text-white tracking-wider';
-                                        }
-                                    }
-                                });
-                            }
-                            // Update waiting count per service
-                            if (json.data.services) {
-                                updateServiceWaitingCounts(json.data.services);
-                            }
-                            // Periksa apakah ada panggilan terbaru yang belum disuarakan
-                            if (json.data.latest_calling) {
-                                const callKey = `${json.data.latest_calling.ticket_code}-${json.data.latest_calling.counter_number}-${json.data.latest_calling.updated_at}`;
-                                if (!processedCallKeys.has(callKey)) {
-                                    enqueueCall(json.data.latest_calling, true);
-                                }
-                            }
+                    if (!res.ok) return;
+                    const json = await res.json();
+                    if (json.status !== 'success' || !json.data) return;
+
+                    applyActiveQueues(json.data.active_queues);
+                    renderRecentCalls(json.data.recent_queues);
+                    updateServiceWaitingCounts(json.data.services);
+
+                    if (json.data.latest_calling) {
+                        const latest = json.data.latest_calling;
+                        const callKey = `${latest.ticket_code}-${latest.counter_number}-${latest.updated_at}`;
+                        if (!processedCallKeys.includes(callKey)) {
+                            enqueueCall(latest, true);
                         }
                     }
                 } catch (e) {
@@ -543,43 +499,87 @@
 
         function stopPolling() {
             if (pollingInterval) {
-                clearInterval(pollingInterval);
+                window.clearInterval(pollingInterval);
                 pollingInterval = null;
             }
         }
 
-        // Panel Debug Controls
-        function toggleAudioPanel() {
-            const panel = document.getElementById('audio-debug-content');
-            const icon = document.getElementById('panel-toggle-icon');
-            if (panel.classList.contains('hidden')) {
-                panel.classList.remove('hidden');
-                icon.innerText = '▼';
-            } else {
-                panel.classList.add('hidden');
-                icon.innerText = '▶';
+        function connectSSE() {
+            if (eventSource) eventSource.close();
+            eventSource = new EventSource("{{ route('display.stream') }}");
+
+            eventSource.addEventListener('initial-state', (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    applyActiveQueues(data.active_queues);
+                    updateServiceWaitingCounts(data.services);
+                } catch (err) {
+                    console.error('Initial state error:', err);
+                }
+            });
+
+            eventSource.addEventListener('queue-called', (e) => {
+                try {
+                    enqueueCall(JSON.parse(e.data), true);
+                } catch (err) {
+                    console.error('Queue called error:', err);
+                }
+            });
+
+            eventSource.onopen = () => {
+                sseFailCount = 0;
+                stopPolling();
+                setConnectionStatus('sse', 'SSE Terhubung');
+            };
+
+            eventSource.onerror = () => {
+                sseFailCount += 1;
+                setConnectionStatus('reconnecting', 'Menghubungkan Ulang');
+                if (sseFailCount >= 2 && !pollingInterval) {
+                    startFallbackPolling();
+                }
+            };
+        }
+
+        function toggleDebugPanel() {
+            if (!debugPanel || !debugToggleBtn) return;
+            const willOpen = debugPanel.classList.contains('hidden');
+            debugPanel.classList.toggle('hidden', !willOpen);
+            debugToggleBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        }
+
+        document.getElementById('btn-enable-audio')?.addEventListener('click', enableAudioEngine);
+        debugToggleBtn?.addEventListener('click', toggleDebugPanel);
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key.toLowerCase() === 'd') {
+                e.preventDefault();
+                toggleDebugPanel();
             }
-        }
+        });
 
-        function testAnnounce(prefix, number, counterNum) {
-            enableAudioEngine();
-            const code = `${prefix}-${String(number).padStart(3, '0')}`;
-            enqueueCall({
-                ticket_code: code,
-                code_prefix: prefix,
-                ticket_number: number,
-                counter_number: counterNum,
-                counter_name: `Loket ${counterNum}`,
-                service_name: 'Uji Coba Pengumuman Suara'
-            }, true);
-        }
+        document.querySelectorAll('[data-test-announce]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                enableAudioEngine();
+                const [prefix, numStr, counterStr] = btn.dataset.testAnnounce.split(',');
+                const number = Number(numStr);
+                const counterNum = Number(counterStr);
+                enqueueCall({
+                    ticket_code: `${prefix}-${String(number).padStart(3, '0')}`,
+                    code_prefix: prefix,
+                    ticket_number: number,
+                    counter_number: counterNum,
+                    counter_name: `Loket ${counterNum}`,
+                    service_name: 'Uji Coba Pengumuman Suara',
+                }, true);
+            });
+        });
 
-        function testChimeOnly() {
+        document.getElementById('btn-test-chime')?.addEventListener('click', () => {
             enableAudioEngine();
             playChime(0.35);
-        }
+        });
 
-        document.addEventListener('DOMContentLoaded', connectSSE);
-    </script>
-</body>
-</html>
+        connectSSE();
+    });
+</script>
+@endpush
