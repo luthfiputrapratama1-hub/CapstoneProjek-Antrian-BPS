@@ -3,11 +3,6 @@
 @section('title', 'Sistem Informasi Antrean & Rekapitulasi PST — BPS Kota Tasikmalaya')
 
 @section('header-actions')
-    <span class="hidden md:inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/10 px-2.5 py-1 text-xs font-medium text-slate-200 tabular-nums-strict">
-        <x-icon name="clock" class="w-3.5 h-3.5 text-emerald-400" />
-        <span>Jam Layanan: 08.00–15.30 WIB</span>
-    </span>
-
     @auth
         @if(Auth::user()->role === 'admin')
             <a href="{{ route('admin.dashboard') }}"
@@ -173,10 +168,10 @@
             </div>
         </section>
 
-        {{-- 4 Pilar Layanan PST BPS --}}
+        {{-- 4 Layanan PST BPS --}}
         <section class="bg-white rounded-xl border border-[#DCE3EC] p-6" aria-labelledby="pillars-heading">
             <div class="mb-5">
-                <h2 id="pillars-heading" class="text-base font-bold text-[#0F172A]">4 Pilar Layanan Statistik Terpadu (PST) BPS</h2>
+                <h2 id="pillars-heading" class="text-base font-bold text-[#0F172A]">4 Layanan Statistik Terpadu (PST) BPS</h2>
                 <p class="text-xs text-[#475569] mt-0.5">Standar Pelayanan Publik sesuai amanat UU No. 16 Tahun 1997 tentang Statistik</p>
             </div>
 

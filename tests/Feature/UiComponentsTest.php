@@ -25,7 +25,12 @@ class UiComponentsTest extends TestCase
     {
         $brandHtml = Blade::render('<x-bps-brand subtitle="Kota Tasikmalaya" />');
         $this->assertStringContainsString('<svg', $brandHtml);
+        $this->assertStringContainsString('<a ', $brandHtml);
         $this->assertStringContainsString('Kota Tasikmalaya', $brandHtml);
+
+        $staticBrandHtml = Blade::render('<x-bps-brand :clickable="false" />');
+        $this->assertStringNotContainsString('<a ', $staticBrandHtml);
+        $this->assertStringContainsString('<div ', $staticBrandHtml);
 
         $iconHtml = Blade::render('<x-icon name="ticket" class="w-5 h-5" />');
         $this->assertStringContainsString('<svg', $iconHtml);

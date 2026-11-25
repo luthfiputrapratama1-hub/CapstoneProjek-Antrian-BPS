@@ -19,16 +19,15 @@
             <form action="{{ route('counter.index') }}" method="GET" class="flex flex-wrap items-center gap-3">
                 <label for="counter_id" class="text-xs font-semibold uppercase tracking-wider text-[#475569]">Loket Bertugas:</label>
                 <select name="counter_id" id="counter_id" onchange="this.form.submit()"
-                        class="rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-sm font-semibold text-[#0F172A]">
+                        class="h-9 rounded-md border border-[#CBD5E1] bg-white px-3 text-xs font-semibold text-[#0F172A]">
                     @foreach($counters as $c)
                         <option value="{{ $c->id }}" {{ $selectedCounter?->id == $c->id ? 'selected' : '' }}>
                             {{ $c->name }}
                         </option>
                     @endforeach
                 </select>
-                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0B4F9C] tabular-nums-strict">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#0B4F9C]" aria-hidden="true"></span>
-                    <span>{{ $waitingCount }} Menunggu</span>
+                <span class="text-xs font-semibold text-[#0B4F9C] tabular-nums-strict">
+                    {{ $waitingCount }} Menunggu
                 </span>
             </form>
 

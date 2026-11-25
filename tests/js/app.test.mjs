@@ -555,3 +555,44 @@ test('showToast debounces burst live announcements and keeps focused toast open 
     await new Promise((resolve) => setTimeout(resolve, 70));
     assert.equal(stack.children.includes(toast), false);
 });
+
+test('initAccountMenu toggles menu, closes on outside click and Escape with focus restoration', () => {
+    const doc = setupFakeDom();
+    const wrapper = new FakeElement('div', { attrs: { 'data-account-menu': '' } });
+    const toggle = new FakeElement('button', {
+        id: 'workspace-account-toggle',
+        attrs: { 'aria-expanded': 'false' },
+    });
+    const menu = new FakeElement('div', {
+        id: 'workspace-account-menu',
+        classes: ['hidden'],
+    });
+    const outside = new FakeElement('div', { id: 'outside' });
+
+    wrapper.ownerDocument = doc;
+    toggle.ownerDocument = doc;
+    menu.ownerDocument = doc;
+    outside.ownerDocument = doc;
+    wrapper.append(toggle, menu);
+    doc.register(wrapper);
+    doc.register(outside);
+
+    app.initAccountMenu(doc);
+    app.initAccountMenu(doc);
+
+    toggle.dispatchEvent({ type: 'click', target: toggle });
+    assert.equal(toggle.getAttribute('aria-expanded'), 'true');
+    assert.equal(menu.classList.contains('hidden'), false);
+
+    doc.dispatchEvent({ type: 'click', target: outside });
+    assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+    assert.equal(menu.classList.contains('hidden'), true);
+
+    toggle.dispatchEvent({ type: 'click', target: toggle });
+    assert.equal(menu.classList.contains('hidden'), false);
+
+    doc.dispatchEvent({ type: 'keydown', key: 'Escape' });
+    assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+    assert.equal(menu.classList.contains('hidden'), true);
+    assert.equal(toggle.focusCount, 1);
+});

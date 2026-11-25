@@ -22,6 +22,7 @@
             <x-bps-brand
                 title="BADAN PUSAT STATISTIK"
                 subtitle="Pelayanan Statistik Terpadu (PST) Kota Tasikmalaya"
+                :clickable="false"
                 :dark="true"
                 size="lg"
             />

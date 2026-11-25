@@ -13,29 +13,12 @@
             <x-bps-brand
                 title="BADAN PUSAT STATISTIK"
                 subtitle="Pelayanan Statistik Terpadu · Informasi Antrean Ruang Tunggu"
+                :clickable="false"
                 :dark="true"
                 size="lg"
             />
 
             <div class="flex items-center gap-3">
-                <button id="btn-enable-audio" type="button"
-                        class="inline-flex items-center gap-2 rounded-md bg-[#F59E0B] hover:bg-amber-400 px-3.5 py-2 text-xs font-bold text-[#090E17] transition-colors">
-                    <x-icon name="volume-on" class="w-4 h-4" />
-                    <span>AKTIFKAN SUARA TV</span>
-                </button>
-
-                <div id="audio-active-badge"
-                     class="hidden items-center gap-1.5 text-xs font-semibold text-emerald-300">
-                    <x-icon name="volume-on" class="w-4 h-4" />
-                    <span>Audio Aktif</span>
-                </div>
-
-                <span id="connection-status"
-                      class="inline-flex items-center gap-2 text-xs font-semibold text-emerald-300">
-                    <span class="w-2 h-2 rounded-full bg-current" aria-hidden="true"></span>
-                    <span>SSE Terhubung</span>
-                </span>
-
                 <div class="text-right rounded-lg border border-[#1F2937] bg-[#111827] px-4 py-1.5 tabular-nums-strict">
                     <div id="display-clock" class="text-2xl font-mono font-bold tracking-wider text-[#F59E0B]">--:--:--</div>
                     <div id="display-date" class="text-[11px] text-slate-300">--</div>
@@ -87,18 +70,18 @@
                     </h2>
                     <div id="service-waiting-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         @foreach($services as $srv)
-                            <div id="service-card-{{ $srv->id }}" class="rounded-lg border border-[#1F2937] bg-[#090E17] px-3.5 py-2.5 flex items-center justify-between gap-2">
-                                <div class="min-w-0">
-                                    <span class="font-mono text-xs font-bold text-[#60A5FA]">
+                            <div id="service-card-{{ $srv->id }}" class="rounded-lg border border-[#1F2937] bg-[#090E17] p-3.5 flex flex-col justify-between gap-2">
+                                <div class="flex items-baseline justify-between gap-2">
+                                    <span class="font-mono text-xs font-bold tracking-wider text-[#60A5FA]">
                                         {{ $srv->code_prefix }}
                                     </span>
-                                    <div class="text-xs font-medium text-slate-300 truncate mt-0.5" title="{{ $srv->name }}">
-                                        {{ $srv->name }}
-                                    </div>
+                                    <span id="service-count-{{ $srv->id }}" class="text-2xl font-mono font-bold text-[#F59E0B] tabular-nums-strict leading-none">
+                                        {{ $srv->queues_count }}
+                                    </span>
                                 </div>
-                                <span id="service-count-{{ $srv->id }}" class="text-2xl font-mono font-bold text-[#F59E0B] tabular-nums-strict">
-                                    {{ $srv->queues_count }}
-                                </span>
+                                <div class="text-xs font-medium text-slate-200 leading-snug line-clamp-2" title="{{ $srv->name }}">
+                                    {{ $srv->name }}
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -603,7 +586,27 @@
             debugToggleBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
         }
 
-        document.getElementById('btn-enable-audio')?.addEventListener('click', enableAudioEngine);
+        function unlockAudioSilently() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                isAudioUnlocked = true;
+                const stateEl = document.getElementById('audio-engine-state');
+                if (stateEl) {
+                    stateEl.textContent = 'Audio Aktif';
+                    stateEl.className = 'text-emerald-400 font-semibold';
+                }
+            } catch (e) {
+                console.warn('Audio unlock error:', e);
+            }
+        }
+
+        document.addEventListener('pointerdown', unlockAudioSilently, { once: true });
+        document.addEventListener('keydown', unlockAudioSilently, { once: true });
         debugToggleBtn?.addEventListener('click', toggleDebugPanel);
         document.addEventListener('keydown', (e) => {
             if (e.altKey && e.code === 'KeyD') {

@@ -87,23 +87,45 @@
                     </ul>
                 </nav>
 
-                <div class="hidden lg:flex items-center gap-2.5 border-l border-white/15 pl-3 shrink-0">
-                    <div class="text-right leading-tight whitespace-nowrap">
-                        <div class="text-xs font-semibold text-white">{{ $user?->name }}</div>
-                        <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-300">{{ $user?->role }}</div>
+                <div class="hidden lg:block relative border-l border-white/15 pl-3 shrink-0" data-account-menu>
+                    <button id="workspace-account-toggle"
+                            type="button"
+                            aria-haspopup="menu"
+                            aria-expanded="false"
+                            aria-controls="workspace-account-menu"
+                            class="inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-left hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-colors">
+                        <span class="text-right leading-tight whitespace-nowrap">
+                            <span class="block text-xs font-semibold text-white">{{ $user?->name }}</span>
+                            <span class="block text-[10px] font-semibold uppercase tracking-wider text-slate-300">{{ $user?->role }}</span>
+                        </span>
+                        <x-icon name="chevron-down" class="w-4 h-4 text-slate-300" />
+                    </button>
+
+                    <div id="workspace-account-menu"
+                         role="menu"
+                         aria-labelledby="workspace-account-toggle"
+                         class="hidden absolute right-0 top-full mt-2 w-56 rounded-lg border border-[#DCE3EC] bg-white p-1.5 shadow-lg z-50 text-[#0F172A]">
+                        <div class="px-3 py-2 border-b border-[#EDF1F6]">
+                            <div class="text-xs font-bold text-[#0F172A] truncate">{{ $user?->name }}</div>
+                            <div class="text-[11px] text-[#64748B] truncate">{{ '@' . $user?->username }} · {{ strtoupper($user?->role ?? '') }}</div>
+                        </div>
+                        <div class="py-1">
+                            <a href="{{ route('password.change') }}"
+                               role="menuitem"
+                               class="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-[#334155] hover:bg-[#EDF1F6] hover:text-[#0F172A]">
+                                <x-icon name="lock" class="w-3.5 h-3.5 text-[#475569]" />
+                                <span>Ubah Kata Sandi</span>
+                            </a>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                        role="menuitem"
+                                        class="w-full flex items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50">
+                                    <span>Keluar</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                    <a href="{{ route('password.change') }}"
-                       class="inline-flex items-center gap-1 rounded-md border border-white/20 bg-white/10 hover:bg-white/20 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap">
-                        <x-icon name="lock" class="w-3.5 h-3.5" />
-                        <span>Kata Sandi</span>
-                    </a>
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button type="submit"
-                                class="rounded-md bg-red-700 hover:bg-red-800 px-3 py-1.5 text-xs font-semibold text-white whitespace-nowrap">
-                            Keluar
-                        </button>
-                    </form>
                 </div>
             </div>
         </div>

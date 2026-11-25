@@ -40,7 +40,7 @@
             <form action="{{ route('admin.dashboard') }}" method="GET" class="flex flex-wrap items-end gap-2.5">
                 <div>
                     <label for="month" class="block text-[11px] font-semibold text-[#475569] mb-1">Bulan</label>
-                    <select id="month" name="month" class="rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-xs font-semibold text-[#0F172A]">
+                    <select id="month" name="month" class="h-9 rounded-md border border-[#CBD5E1] bg-white px-3 text-xs font-semibold text-[#0F172A]">
                         @foreach($monthNames as $num => $name)
                             <option value="{{ $num }}" {{ $selectedMonth === $num ? 'selected' : '' }}>
                                 {{ $name }}
@@ -51,7 +51,7 @@
 
                 <div>
                     <label for="year" class="block text-[11px] font-semibold text-[#475569] mb-1">Tahun</label>
-                    <select id="year" name="year" class="rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-xs font-semibold text-[#0F172A] tabular-nums-strict">
+                    <select id="year" name="year" class="h-9 rounded-md border border-[#CBD5E1] bg-white px-3 text-xs font-semibold text-[#0F172A] tabular-nums-strict">
                         @for($y = 2024; $y <= 2028; $y++)
                             <option value="{{ $y }}" {{ $selectedYear === $y ? 'selected' : '' }}>
                                 {{ $y }}
@@ -61,7 +61,7 @@
                 </div>
 
                 <button type="submit"
-                        class="rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] px-4 py-2 text-xs font-semibold text-white">
+                        class="h-9 rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] px-4 text-xs font-semibold text-white">
                     Terapkan Filter
                 </button>
             </form>

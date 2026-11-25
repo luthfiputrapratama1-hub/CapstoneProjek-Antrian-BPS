@@ -5,13 +5,7 @@
 @section('main-class', 'max-w-md w-full mx-auto px-4 py-12 flex-1 flex flex-col justify-center')
 
 @section('content')
-    <div class="bg-white rounded-xl border border-[#DCE3EC] overflow-hidden shadow-sm">
-        <div class="h-1 w-full flex" aria-hidden="true">
-            <span class="flex-1 bg-[#0B4F9C]"></span>
-            <span class="flex-1 bg-[#15803D]"></span>
-            <span class="flex-1 bg-[#EA580C]"></span>
-        </div>
-
+    <div class="bg-white rounded-xl border border-[#DCE3EC] shadow-sm">
         <div class="p-6 sm:p-8">
             <div class="mb-6">
                 <x-bps-brand

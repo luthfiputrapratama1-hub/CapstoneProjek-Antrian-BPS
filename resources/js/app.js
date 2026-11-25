@@ -371,6 +371,39 @@ export function renderFormErrors(formEl, summaryEl, errors = {}, topMessage = nu
     }
 }
 
+export function initAccountMenu(root = document) {
+    const wrapper = root.querySelector('[data-account-menu]');
+    const toggle = root.querySelector('#workspace-account-toggle');
+    const menu = root.querySelector('#workspace-account-menu');
+    if (!wrapper || !toggle || !menu) return;
+    if (toggle.dataset.pstAccountBound === 'true') return;
+    toggle.dataset.pstAccountBound = 'true';
+
+    const closeMenu = () => {
+        toggle.setAttribute('aria-expanded', 'false');
+        menu.classList.add('hidden');
+    };
+
+    toggle.addEventListener('click', () => {
+        const willOpen = menu.classList.contains('hidden');
+        toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        menu.classList.toggle('hidden', !willOpen);
+    });
+
+    const doc = root.ownerDocument || root;
+    doc.addEventListener('click', (e) => {
+        if (!menu.classList.contains('hidden') && !wrapper.contains(e.target)) {
+            closeMenu();
+        }
+    });
+    doc.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !menu.classList.contains('hidden')) {
+            closeMenu();
+            toggle.focus();
+        }
+    });
+}
+
 window.PstUi = {
     openModal,
     closeModal,
@@ -383,5 +416,6 @@ window.PstUi = {
 document.addEventListener('DOMContentLoaded', () => {
     initDialogs();
     initNavDrawer();
+    initAccountMenu();
     initPasswordToggles();
 });

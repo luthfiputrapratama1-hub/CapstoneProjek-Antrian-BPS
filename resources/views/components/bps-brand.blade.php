@@ -2,6 +2,7 @@
     'title' => 'BADAN PUSAT STATISTIK',
     'subtitle' => 'Pelayanan Statistik Terpadu · Kota Tasikmalaya',
     'href' => route('home'),
+    'clickable' => true,
     'dark' => false,
     'size' => 'md',
 ])
@@ -10,9 +11,14 @@
     $boxSize = $size === 'lg' ? 'w-14 h-11' : 'w-12 h-9';
     $titleClass = $dark ? 'text-white' : 'text-[#0F172A]';
     $subClass = $dark ? 'text-slate-300' : 'text-[#475569]';
+    $isLink = $clickable && !empty($href);
 @endphp
 
+@if($isLink)
 <a href="{{ $href }}" {{ $attributes->merge(['class' => 'inline-flex items-center gap-3 group focus-visible:outline-2 focus-visible:outline-offset-2 rounded-md']) }}>
+@else
+<div {{ $attributes->merge(['class' => 'inline-flex items-center gap-3']) }}>
+@endif
     <span class="{{ $boxSize }} shrink-0 rounded-md border {{ $dark ? 'border-white/20 bg-white' : 'border-[#DCE3EC] bg-white' }} flex items-center justify-center p-1.5">
         <svg viewBox="0 0 388 300" class="w-full h-full" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" aria-hidden="true">
             <g transform="matrix(0.280374,0,0,0.280374,0,0)">
@@ -83,4 +89,8 @@
             <span class="block text-xs font-medium {{ $subClass }} truncate">{{ $subtitle }}</span>
         @endif
     </span>
+@if($isLink)
 </a>
+@else
+</div>
+@endif
