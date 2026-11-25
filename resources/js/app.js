@@ -23,7 +23,7 @@ export function initDialogs(root = document) {
         if (!supportsClosedBy && dialog.getAttribute('closedby') === 'any') {
             let pressedOutside = false;
             dialog.addEventListener('pointerdown', (e) => {
-                pressedOutside = isPointerOutsideDialog(e, dialog);
+                pressedOutside = e.target === dialog && isPointerOutsideDialog(e, dialog);
             });
             dialog.addEventListener('pointerup', (e) => {
                 if (pressedOutside && isPointerOutsideDialog(e, dialog)) {
@@ -34,7 +34,9 @@ export function initDialogs(root = document) {
         }
 
         dialog.addEventListener('close', () => {
-            dialog.returnValue = '';
+            queueMicrotask(() => {
+                dialog.returnValue = '';
+            });
             if (dialog.dataset.resetOnClose === 'true') {
                 dialog.querySelectorAll('form').forEach((form) => {
                     if (form.method !== 'dialog') form.reset();
@@ -70,6 +72,7 @@ export function openModal(id) {
     const dialog = document.getElementById(id);
     if (!dialog || typeof dialog.showModal !== 'function') return null;
     if (!dialog.open) {
+        dialog.returnValue = '';
         dialog.showModal();
     }
     return dialog;
@@ -176,7 +179,7 @@ export function showConfirm({
     tone = 'primary',
 } = {}) {
     const dialog = document.getElementById('pst-confirm-dialog');
-    if (!dialog) {
+    if (!dialog || dialog.open || typeof dialog.showModal !== 'function') {
         return Promise.resolve(false);
     }
 
@@ -203,6 +206,7 @@ export function showConfirm({
             dialog.removeEventListener('close', handleClose);
             resolve(confirmed);
         };
+        dialog.returnValue = '';
         dialog.addEventListener('close', handleClose);
         dialog.showModal();
     });
@@ -212,6 +216,8 @@ export function initNavDrawer(root = document) {
     const toggle = root.getElementById('workspace-nav-toggle');
     const navList = root.getElementById('workspace-nav-list');
     if (!toggle || !navList) return;
+    if (toggle.dataset.pstNavBound === 'true') return;
+    toggle.dataset.pstNavBound = 'true';
 
     const closeDrawer = () => {
         toggle.setAttribute('aria-expanded', 'false');
@@ -230,12 +236,15 @@ export function initNavDrawer(root = document) {
         }
     });
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
-            closeDrawer();
-            toggle.focus();
-        }
-    });
+    if (navList.dataset.pstEscBound !== 'true') {
+        navList.dataset.pstEscBound = 'true';
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+                closeDrawer();
+                toggle.focus();
+            }
+        });
+    }
 }
 
 export function initPasswordToggles(root = document) {
@@ -270,6 +279,10 @@ export function clearFormErrors(formEl, summaryEl) {
         if (list) list.replaceChildren();
     }
     if (!formEl) return;
+
+    formEl.querySelectorAll('[aria-invalid]').forEach((input) => {
+        input.setAttribute('aria-invalid', 'false');
+    });
 
     formEl.querySelectorAll('[data-error]').forEach((input) => {
         input.setAttribute('aria-invalid', 'false');
