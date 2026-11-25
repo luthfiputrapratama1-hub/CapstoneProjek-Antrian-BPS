@@ -1,196 +1,160 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rekapitulasi Kunjungan Pengunjung - PST BPS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-100 min-h-screen flex flex-col justify-between selection:bg-none">
-    <!-- Navbar Admin -->
-    <header class="bg-blue-950 text-white shadow-md py-4 px-8 flex justify-between items-center">
-        <div class="flex items-center space-x-4">
-            <a href="{{ route('home') }}" title="Kembali ke Beranda Portal PST"
-                class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-900 font-black text-xl shadow hover:scale-105 transition-transform">
-                BPS
-            </a>
-            <div>
-                <h1 class="text-xl font-bold tracking-wide">Rekapitulasi Kunjungan Buku Tamu PST</h1>
-                <p class="text-xs text-blue-200">Badan Pusat Statistik Kota Tasikmalaya</p>
-            </div>
-        </div>
+@extends('layouts.workspace', [
+    'activeNav' => 'reports',
+    'pageTitle' => 'Rekapitulasi Kunjungan Buku Tamu PST',
+    'pageSubtitle' => 'Badan Pusat Statistik Kota Tasikmalaya',
+])
 
-        <div class="flex items-center space-x-6">
-            <nav class="flex space-x-4 text-sm font-semibold">
-                <a href="{{ route('admin.dashboard') }}" class="text-blue-200 hover:text-white transition pb-1">Dashboard</a>
-                <a href="{{ route('admin.reports.index') }}" class="text-emerald-400 border-b-2 border-emerald-400 pb-1">Rekap Laporan</a>
-                <a href="{{ route('admin.services.index') }}" class="text-blue-200 hover:text-white transition pb-1">Layanan</a>
-                <a href="{{ route('admin.counters.index') }}" class="text-blue-200 hover:text-white transition pb-1">Loket</a>
-                <a href="{{ route('admin.users.index') }}" class="text-blue-200 hover:text-white transition pb-1">Pengguna</a>
-                <a href="{{ route('counter.index') }}" class="text-blue-200 hover:text-white transition pb-1">Buka Loket</a>
-            </nav>
+@php
+    $institutionLabels = [
+        'pendidikan' => 'Pendidikan / Riset',
+        'pemerintah' => 'Instansi Pemerintah',
+        'swasta' => 'Sektor Swasta',
+        'lsm' => 'LSM / Media',
+        'umum' => 'Masyarakat Umum',
+    ];
+@endphp
 
-            <div class="border-l border-blue-800 pl-6 flex items-center space-x-3">
-                <span class="text-xs text-blue-200">Admin: <strong>{{ Auth::user()->name }}</strong></span>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="bg-red-700 hover:bg-red-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition shadow">
-                        Keluar
-                    </button>
-                </form>
-            </div>
-        </div>
-    </header>
+@section('content')
+    <div class="space-y-6">
+        <section class="bg-white rounded-xl border border-[#DCE3EC] p-5">
+            <search>
+                <form action="{{ route('admin.reports.index') }}" method="GET" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5">
+                        <div>
+                            <label for="start_date" class="block text-xs font-semibold text-[#0F172A] mb-1">Tanggal Mulai</label>
+                            <input type="date" id="start_date" name="start_date" value="{{ $startDate }}"
+                                   class="w-full rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-xs text-[#0F172A] tabular-nums-strict">
+                        </div>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full space-y-6">
-        <!-- Form Filter & Tombol Ekspor -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-            <form action="{{ route('admin.reports.index') }}" method="GET" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div>
-                        <label for="start_date" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tanggal Mulai</label>
-                        <input type="date" id="start_date" name="start_date" value="{{ $startDate }}"
-                            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                        <div>
+                            <label for="end_date" class="block text-xs font-semibold text-[#0F172A] mb-1">Tanggal Selesai</label>
+                            <input type="date" id="end_date" name="end_date" value="{{ $endDate }}"
+                                   class="w-full rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-xs text-[#0F172A] tabular-nums-strict">
+                        </div>
+
+                        <div>
+                            <label for="service_id" class="block text-xs font-semibold text-[#0F172A] mb-1">Layanan PST</label>
+                            <select id="service_id" name="service_id"
+                                    class="w-full rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-xs text-[#0F172A]">
+                                <option value="">Semua Layanan</option>
+                                @foreach($services as $s)
+                                    <option value="{{ $s->id }}" {{ $serviceId == $s->id ? 'selected' : '' }}>
+                                        {{ $s->name }} ({{ $s->code_prefix }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="institution_type" class="block text-xs font-semibold text-[#0F172A] mb-1">Kategori Instansi</label>
+                            <select id="institution_type" name="institution_type"
+                                    class="w-full rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-xs text-[#0F172A]">
+                                <option value="">Semua Kategori</option>
+                                @foreach($institutionLabels as $key => $label)
+                                    <option value="{{ $key }}" {{ $institutionType == $key ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="search" class="block text-xs font-semibold text-[#0F172A] mb-1">Cari Nama / Instansi / Tiket</label>
+                            <input type="search" id="search" name="search" value="{{ $search }}" placeholder="Ketik kata kunci..."
+                                   class="w-full rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-xs text-[#0F172A]">
+                        </div>
                     </div>
 
-                    <div>
-                        <label for="end_date" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tanggal Selesai</label>
-                        <input type="date" id="end_date" name="end_date" value="{{ $endDate }}"
-                            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#EDF1F6]">
+                        <div class="flex items-center gap-2">
+                            <button type="submit"
+                                    class="inline-flex items-center gap-1.5 rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] px-4 py-2 text-xs font-semibold text-white">
+                                <x-icon name="search" class="w-3.5 h-3.5" />
+                                <span>Terapkan Filter</span>
+                            </button>
+                            @if($search || $serviceId || $institutionType || $startDate != now()->startOfMonth()->toDateString() || $endDate != now()->toDateString())
+                                <a href="{{ route('admin.reports.index') }}"
+                                   class="rounded-md border border-[#CBD5E1] bg-white hover:bg-[#F4F6F9] px-3.5 py-2 text-xs font-semibold text-[#334155]">
+                                    Reset
+                                </a>
+                            @endif
+                        </div>
 
-                    <div>
-                        <label for="service_id" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Layanan PST</label>
-                        <select id="service_id" name="service_id"
-                            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                            <option value="">-- Semua Layanan --</option>
-                            @foreach($services as $s)
-                                <option value="{{ $s->id }}" {{ $serviceId == $s->id ? 'selected' : '' }}>
-                                    {{ $s->name }} ({{ $s->code_prefix }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="institution_type" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Kategori Instansi</label>
-                        <select id="institution_type" name="institution_type"
-                            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                            <option value="">-- Semua Kategori --</option>
-                            <option value="pendidikan" {{ $institutionType == 'pendidikan' ? 'selected' : '' }}>Pendidikan / Mahasiswa</option>
-                            <option value="pemerintah" {{ $institutionType == 'pemerintah' ? 'selected' : '' }}>Instansi Pemerintah</option>
-                            <option value="swasta" {{ $institutionType == 'swasta' ? 'selected' : '' }}>Sektor Swasta</option>
-                            <option value="lsm" {{ $institutionType == 'lsm' ? 'selected' : '' }}>LSM / Media</option>
-                            <option value="umum" {{ $institutionType == 'umum' ? 'selected' : '' }}>Masyarakat Umum</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="search" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Cari Nama / Instansi / Tiket</label>
-                        <input type="text" id="search" name="search" value="{{ $search }}" placeholder="Ketik kata kunci..."
-                            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
-                    <div class="flex items-center space-x-2">
-                        <button type="submit"
-                            class="bg-blue-900 hover:bg-blue-800 text-white font-bold py-2.5 px-6 rounded-xl transition text-sm shadow flex items-center space-x-2">
-                            <span>🔍</span>
-                            <span>Terapkan Filter</span>
-                        </button>
-                        @if($search || $serviceId || $institutionType || $startDate != now()->startOfMonth()->toDateString() || $endDate != now()->toDateString())
-                            <a href="{{ route('admin.reports.index') }}"
-                                class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition text-sm">
-                                Reset
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mr-1">Ekspor Data:</span>
+                            <a href="{{ route('admin.reports.exportCsv', request()->query()) }}"
+                               title="Unduh format spreadsheet CSV dengan UTF-8 BOM"
+                               class="inline-flex items-center gap-1.5 rounded-md bg-[#15803D] hover:bg-emerald-800 px-3.5 py-2 text-xs font-semibold text-white">
+                                <x-icon name="download" class="w-3.5 h-3.5" />
+                                <span>Ekspor CSV</span>
                             </a>
-                        @endif
+                            <a href="{{ route('admin.reports.exportPdf', request()->query()) }}"
+                               target="_blank"
+                               title="Cetak/Unduh dokumen resmi PDF ber-kop BPS"
+                               class="inline-flex items-center gap-1.5 rounded-md bg-red-700 hover:bg-red-800 px-3.5 py-2 text-xs font-semibold text-white">
+                                <x-icon name="document" class="w-3.5 h-3.5" />
+                                <span>Ekspor PDF Resmi</span>
+                            </a>
+                        </div>
                     </div>
+                </form>
+            </search>
+        </section>
 
-                    <div class="flex items-center space-x-3">
-                        <span class="text-xs font-bold uppercase text-slate-400">Ekspor Data:</span>
-                        <a href="{{ route('admin.reports.exportCsv', request()->query()) }}"
-                            class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl transition text-sm shadow flex items-center space-x-1.5"
-                            title="Unduh format spreadsheet CSV dengan UTF-8 BOM">
-                            <span>📥</span>
-                            <span>Ekspor CSV</span>
-                        </a>
-                        <a href="{{ route('admin.reports.exportPdf', request()->query()) }}"
-                            class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl transition text-sm shadow flex items-center space-x-1.5"
-                            title="Cetak/Unduh dokumen resmi PDF ber-kop BPS"
-                            target="_blank">
-                            <span>📄</span>
-                            <span>Ekspor PDF Resmi</span>
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- Tabel Rekapitulasi -->
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-6 border-b border-slate-200 flex justify-between items-center">
-                <h3 class="text-lg font-black text-slate-800">
+        <section class="bg-white rounded-xl border border-[#DCE3EC] overflow-hidden">
+            <div class="p-5 border-b border-[#DCE3EC] flex items-center justify-between gap-3">
+                <h1 id="reports-table-title" class="text-base font-bold text-[#0F172A] tabular-nums-strict">
                     Daftar Pengunjung Terverifikasi (Total: {{ $visitors->total() }} Data)
-                </h3>
+                </h1>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-700">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase text-slate-500 tracking-wider">
+            <x-table-wrapper labelled-by="reports-table-title">
+                <table class="w-full text-left text-sm text-[#334155]">
+                    <thead class="bg-[#EDF1F6] border-b border-[#DCE3EC] text-[11px] font-semibold uppercase tracking-wider text-[#475569]">
                         <tr>
-                            <th class="py-3 px-4">Tanggal</th>
-                            <th class="py-3 px-4">Tiket</th>
-                            <th class="py-3 px-4">Layanan</th>
-                            <th class="py-3 px-4">Nama Lengkap</th>
-                            <th class="py-3 px-4">Kontak</th>
-                            <th class="py-3 px-4">Instansi Asal</th>
-                            <th class="py-3 px-4">Kategori</th>
-                            <th class="py-3 px-4">Tunggu / Layanan</th>
-                            <th class="py-3 px-4">Kebutuhan Data</th>
+                            <th scope="col" class="py-3 px-4">Tanggal</th>
+                            <th scope="col" class="py-3 px-4">Tiket</th>
+                            <th scope="col" class="py-3 px-4">Layanan</th>
+                            <th scope="col" class="py-3 px-4">Nama Lengkap</th>
+                            <th scope="col" class="py-3 px-4">Kontak</th>
+                            <th scope="col" class="py-3 px-4">Instansi Asal</th>
+                            <th scope="col" class="py-3 px-4">Kategori</th>
+                            <th scope="col" class="py-3 px-4">Tunggu / Layanan</th>
+                            <th scope="col" class="py-3 px-4">Kebutuhan Data</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-[#EDF1F6]">
                         @forelse($visitors as $v)
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">{{ $v->queue->queue_date->format('d/m/Y') }}</td>
-                                <td class="py-3 px-4 font-mono font-bold text-blue-900">{{ $v->queue->ticket_code }}</td>
-                                <td class="py-3 px-4 text-xs font-semibold text-slate-700">{{ $v->queue->service?->name ?? '-' }}</td>
-                                <td class="py-3 px-4 font-semibold text-slate-900">{{ $v->full_name }}</td>
-                                <td class="py-3 px-4 text-xs text-slate-600">{{ $v->phone_number }}</td>
-                                <td class="py-3 px-4 text-xs text-slate-700">{{ $v->institution_name }}</td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded text-[11px] font-bold uppercase bg-slate-100 text-slate-700 border">
-                                        {{ $v->institution_type }}
-                                    </span>
+                            <tr class="hover:bg-[#F8FAFC]">
+                                <td class="py-3 px-4 text-xs text-[#475569] whitespace-nowrap tabular-nums-strict">{{ $v->queue->queue_date->format('d/m/Y') }}</td>
+                                <td class="py-3 px-4 font-mono font-bold text-[#0A2540] whitespace-nowrap tabular-nums-strict">{{ $v->queue->ticket_code }}</td>
+                                <td class="py-3 px-4 text-xs font-medium text-[#0F172A]">{{ $v->queue->service?->name ?? '-' }}</td>
+                                <td class="py-3 px-4 font-semibold text-[#0F172A]">{{ $v->full_name }}</td>
+                                <td class="py-3 px-4 text-xs text-[#475569] tabular-nums-strict">{{ $v->phone_number }}</td>
+                                <td class="py-3 px-4 text-xs text-[#334155]">{{ $v->institution_name }}</td>
+                                <td class="py-3 px-4 whitespace-nowrap">
+                                    <x-badge tone="neutral">{{ $institutionLabels[$v->institution_type] ?? $v->institution_type }}</x-badge>
                                 </td>
-                                <td class="py-3 px-4 text-xs text-slate-600 whitespace-nowrap">
+                                <td class="py-3 px-4 text-xs font-mono text-[#475569] whitespace-nowrap tabular-nums-strict">
                                     {{ round(($v->queue->wait_duration_seconds ?? 0) / 60, 1) }}m /
                                     {{ round(($v->queue->serve_duration_seconds ?? 0) / 60, 1) }}m
                                 </td>
-                                <td class="py-3 px-4 text-xs text-slate-600 max-w-xs truncate">{{ $v->data_needs_description }}</td>
+                                <td class="py-3 px-4 text-xs text-[#475569] max-w-xs" title="{{ $v->data_needs_description }}">
+                                    <span class="block truncate">{{ $v->data_needs_description }}</span>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center py-12 text-slate-400 text-sm">Tidak ada data kunjungan sesuai filter yang dipilih</td>
+                                <td colspan="9" class="text-center py-10 text-xs text-[#64748B]">Tidak ada data kunjungan sesuai filter yang dipilih</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
-            </div>
+            </x-table-wrapper>
 
-            <!-- Pagination -->
             @if($visitors->hasPages())
-                <div class="p-4 border-t border-slate-200">
+                <div class="p-4 border-t border-[#DCE3EC] bg-[#F8FAFC]">
                     {{ $visitors->links() }}
                 </div>
             @endif
-        </div>
-    </main>
-
-    <footer class="bg-white border-t border-slate-200 py-4 px-8 text-center text-xs text-slate-500">
-        Sistem Informasi Antrean & Rekapitulasi Pengunjung PST BPS Kota Tasikmalaya © 2026
-    </footer>
-</body>
-</html>
+        </section>
+    </div>
+@endsection

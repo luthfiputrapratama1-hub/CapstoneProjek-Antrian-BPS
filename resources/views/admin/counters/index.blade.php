@@ -1,131 +1,86 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Loket & Penugasan Layanan - Administrator PST BPS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-100 min-h-screen flex flex-col justify-between selection:bg-none">
-    <!-- Navbar Admin -->
-    <header class="bg-blue-950 text-white shadow-md py-4 px-8 flex justify-between items-center">
-        <div class="flex items-center space-x-4">
-            <a href="{{ route('home') }}" title="Kembali ke Beranda Portal PST"
-                class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-900 font-black text-xl shadow hover:scale-105 transition-transform">
-                BPS
-            </a>
+@extends('layouts.workspace', [
+    'activeNav' => 'counters',
+    'pageTitle' => 'Pengelolaan Meja Loket & Penugasan Layanan',
+    'pageSubtitle' => 'Badan Pusat Statistik Kota Tasikmalaya',
+])
+
+@section('content')
+    <div class="space-y-6">
+        <x-flash-alerts />
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-bold tracking-wide">Pengelolaan Meja Loket & Penugasan Layanan</h1>
-                <p class="text-xs text-blue-200">Badan Pusat Statistik Kota Tasikmalaya</p>
+                <h1 id="counters-heading" class="text-lg font-bold text-[#0F172A]">Daftar Meja Loket Pelayanan</h1>
+                <p class="text-xs text-[#475569] mt-0.5">Atur nama loket, nomor fisik loket, dan kategori layanan yang ditugaskan.</p>
             </div>
-        </div>
-
-        <div class="flex items-center space-x-6">
-            <nav class="flex space-x-4 text-sm font-semibold">
-                <a href="{{ route('admin.dashboard') }}" class="text-blue-200 hover:text-white transition pb-1">Dashboard</a>
-                <a href="{{ route('admin.reports.index') }}" class="text-blue-200 hover:text-white transition pb-1">Rekap Laporan</a>
-                <a href="{{ route('admin.services.index') }}" class="text-blue-200 hover:text-white transition pb-1">Layanan</a>
-                <a href="{{ route('admin.counters.index') }}" class="text-emerald-400 border-b-2 border-emerald-400 pb-1">Loket</a>
-                <a href="{{ route('admin.users.index') }}" class="text-blue-200 hover:text-white transition pb-1">Pengguna</a>
-                <a href="{{ route('counter.index') }}" class="text-blue-200 hover:text-white transition pb-1">Buka Loket</a>
-            </nav>
-
-            <div class="border-l border-blue-800 pl-6 flex items-center space-x-3">
-                <span class="text-xs text-blue-200">Admin: <strong>{{ Auth::user()->name }}</strong></span>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="bg-red-700 hover:bg-red-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition shadow">
-                        Keluar
-                    </button>
-                </form>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full space-y-6">
-        @if(session('success'))
-            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-sm">
-                <span class="flex items-center space-x-2">
-                    <span>✓</span>
-                    <span>{{ session('success') }}</span>
-                </span>
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div class="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm shadow-sm">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="text-2xl font-black text-slate-800">Daftar Meja Loket Pelayanan</h2>
-                <p class="text-slate-500 text-sm mt-0.5">Atur nama loket, nomor fisik loket, dan tentukan kategori layanan yang ditugaskan.</p>
-            </div>
-            <button type="button" onclick="openCreateModal()"
-                class="bg-blue-900 hover:bg-blue-800 text-white font-bold px-4 py-2.5 rounded-xl shadow transition text-sm flex items-center space-x-2">
-                <span>+</span>
+            <button type="button"
+                    data-dialog-open="create-counter-modal"
+                    class="inline-flex items-center gap-1.5 rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] px-4 py-2 text-xs font-semibold text-white shrink-0">
+                <x-icon name="plus" class="w-4 h-4" />
                 <span>Tambah Loket Baru</span>
             </button>
         </div>
 
-        <!-- Tabel Loket -->
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-700">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase text-slate-500 tracking-wider">
+        <section class="bg-white rounded-xl border border-[#DCE3EC] overflow-hidden">
+            <x-table-wrapper labelled-by="counters-heading">
+                <table class="w-full text-left text-sm text-[#334155]">
+                    <thead class="bg-[#EDF1F6] border-b border-[#DCE3EC] text-[11px] font-semibold uppercase tracking-wider text-[#475569]">
                         <tr>
-                            <th class="py-3.5 px-5">Nomor Loket</th>
-                            <th class="py-3.5 px-5">Nama Loket</th>
-                            <th class="py-3.5 px-5">Kategori Layanan Ditugaskan</th>
-                            <th class="py-3.5 px-5 text-center">Status</th>
-                            <th class="py-3.5 px-5 text-center">Aksi</th>
+                            <th scope="col" class="py-3 px-4">Nomor</th>
+                            <th scope="col" class="py-3 px-4">Nama Loket</th>
+                            <th scope="col" class="py-3 px-4">Kategori Layanan Ditugaskan</th>
+                            <th scope="col" class="py-3 px-4 text-center">Status</th>
+                            <th scope="col" class="py-3 px-4 text-center">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-[#EDF1F6]">
                         @foreach($counters as $c)
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="py-4 px-5">
-                                    <span class="w-9 h-9 rounded-xl bg-blue-100 text-blue-900 font-mono font-black text-base flex items-center justify-center shadow-inner">
+                            @php
+                                $editPayload = [
+                                    'action' => route('admin.counters.update', $c->id),
+                                    'name' => $c->name,
+                                    'counter_number' => $c->counter_number,
+                                    'service_ids' => $c->services->pluck('id')->all(),
+                                    'is_active' => (bool) $c->is_active,
+                                ];
+                            @endphp
+                            <tr class="hover:bg-[#F8FAFC]">
+                                <td class="py-3.5 px-4">
+                                    <span class="w-8 h-8 rounded-md bg-blue-50 border border-blue-200 text-[#0B4F9C] font-mono font-bold text-sm flex items-center justify-center tabular-nums-strict">
                                         {{ $c->counter_number }}
                                     </span>
                                 </td>
-                                <td class="py-4 px-5 font-bold text-slate-900">{{ $c->name }}</td>
-                                <td class="py-4 px-5">
+                                <td class="py-3.5 px-4 font-semibold text-[#0F172A]">{{ $c->name }}</td>
+                                <td class="py-3.5 px-4">
                                     <div class="flex flex-wrap gap-1.5">
                                         @forelse($c->services as $srv)
-                                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                                                <span class="w-2 h-2 rounded-full bg-blue-600 mr-1.5"></span>
-                                                <span>{{ $srv->name }} ({{ $srv->code_prefix }})</span>
-                                            </span>
+                                            <x-badge tone="neutral">
+                                                <span class="font-mono font-bold text-[#0B4F9C]">{{ $srv->code_prefix }}</span>
+                                                <span>{{ $srv->name }}</span>
+                                            </x-badge>
                                         @empty
-                                            <span class="text-xs text-red-500 italic">Belum ada penugasan layanan</span>
+                                            <span class="text-xs text-red-700">Belum ada penugasan layanan</span>
                                         @endforelse
                                     </div>
                                 </td>
-                                <td class="py-4 px-5 text-center">
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase {{ $c->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500' }}">
+                                <td class="py-3.5 px-4 text-center">
+                                    <x-badge :tone="$c->is_active ? 'green' : 'neutral'">
                                         {{ $c->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </span>
+                                    </x-badge>
                                 </td>
-                                <td class="py-4 px-5 text-center">
-                                    <div class="flex items-center justify-center space-x-2">
+                                <td class="py-3.5 px-4 text-center">
+                                    <div class="inline-flex items-center justify-center gap-2">
                                         <button type="button"
-                                            onclick="openEditModal({{ $c->id }}, '{{ addslashes($c->name) }}', {{ $c->counter_number }}, {{ json_encode($c->services->pluck('id')->all()) }}, {{ $c->is_active ? 'true' : 'false' }})"
-                                            class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                                                data-edit-counter
+                                                data-payload="{{ json_encode($editPayload) }}"
+                                                class="rounded-md border border-[#CBD5E1] bg-white hover:bg-[#EDF1F6] px-2.5 py-1 text-xs font-semibold text-[#0F172A]">
                                             Edit Penugasan
                                         </button>
                                         <form action="{{ route('admin.counters.toggle', $c->id) }}" method="POST">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit"
-                                                class="text-xs font-bold px-3 py-1.5 rounded-lg transition {{ $c->is_active ? 'bg-amber-100 hover:bg-amber-200 text-amber-800' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800' }}">
+                                                    class="rounded-md px-2.5 py-1 text-xs font-semibold {{ $c->is_active ? 'border border-orange-200 bg-orange-50 hover:bg-orange-100 text-[#C2410C]' : 'border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-[#15803D]' }}">
                                                 {{ $c->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                             </button>
                                         </form>
@@ -135,107 +90,99 @@
                         @endforeach
                     </tbody>
                 </table>
+            </x-table-wrapper>
+        </section>
+    </div>
+
+    <x-modal id="create-counter-modal" title="Tambah Meja Loket Baru" :reset-on-close="true" max-width="max-w-md">
+        <form action="{{ route('admin.counters.store') }}" method="POST" class="space-y-4">
+            @csrf
+            <div>
+                <label for="create-counter-number" class="block text-xs font-semibold text-[#0F172A] mb-1">Nomor Fisik Loket</label>
+                <input type="number" id="create-counter-number" name="counter_number" required min="1" autofocus placeholder="Contoh: 3"
+                       class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2 text-sm font-mono font-bold text-[#0F172A]">
             </div>
-        </div>
-    </main>
+            <div>
+                <label for="create-counter-name" class="block text-xs font-semibold text-[#0F172A] mb-1">Nama Loket</label>
+                <input type="text" id="create-counter-name" name="name" required placeholder="Contoh: Loket 3"
+                       class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2 text-sm text-[#0F172A]">
+            </div>
+            <fieldset>
+                <legend class="text-xs font-semibold text-[#0F172A] mb-1.5">Penugasan Layanan PST</legend>
+                <div class="space-y-2 rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] p-3 max-h-40 overflow-y-auto">
+                    @foreach($services as $srv)
+                        <label class="flex items-center gap-2 text-xs font-medium text-[#334155] cursor-pointer">
+                            <input type="checkbox" name="service_ids[]" value="{{ $srv->id }}" checked class="h-4 w-4 rounded border-[#CBD5E1] accent-[#0B4F9C]">
+                            <span>{{ $srv->name }} ({{ $srv->code_prefix }})</span>
+                        </label>
+                    @endforeach
+                </div>
+            </fieldset>
+            <div class="pt-3 flex justify-end gap-2 border-t border-[#DCE3EC]">
+                <button type="button" data-dialog-close="create-counter-modal"
+                        class="rounded-md border border-[#CBD5E1] bg-white hover:bg-[#F4F6F9] px-4 py-2 text-xs font-semibold text-[#334155]">Batal</button>
+                <button type="submit"
+                        class="rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] px-4 py-2 text-xs font-semibold text-white">Simpan Loket</button>
+            </div>
+        </form>
+    </x-modal>
 
-    <!-- Modal Tambah Loket -->
-    <div id="create-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-            <h3 class="text-xl font-black text-slate-800 mb-4">Tambah Meja Loket Baru</h3>
-            <form action="{{ route('admin.counters.store') }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nomor Fisik Loket</label>
-                    <input type="number" name="counter_number" required min="1" placeholder="Contoh: 3"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-mono font-bold text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+    <x-modal id="edit-counter-modal" title="Edit Meja Loket &amp; Penugasan" max-width="max-w-md">
+        <form id="edit-counter-form" method="POST" class="space-y-4">
+            @csrf
+            @method('PUT')
+            <div>
+                <label for="edit-counter-number" class="block text-xs font-semibold text-[#0F172A] mb-1">Nomor Fisik Loket</label>
+                <input type="number" id="edit-counter-number" name="counter_number" required min="1" autofocus
+                       class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2 text-sm font-mono font-bold text-[#0F172A]">
+            </div>
+            <div>
+                <label for="edit-counter-name" class="block text-xs font-semibold text-[#0F172A] mb-1">Nama Loket</label>
+                <input type="text" id="edit-counter-name" name="name" required
+                       class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2 text-sm text-[#0F172A]">
+            </div>
+            <fieldset>
+                <legend class="text-xs font-semibold text-[#0F172A] mb-1.5">Penugasan Kategori Layanan</legend>
+                <div class="space-y-2 rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] p-3 max-h-40 overflow-y-auto">
+                    @foreach($services as $srv)
+                        <label class="flex items-center gap-2 text-xs font-medium text-[#334155] cursor-pointer">
+                            <input type="checkbox" name="service_ids[]" value="{{ $srv->id }}" class="edit-counter-service-cb h-4 w-4 rounded border-[#CBD5E1] accent-[#0B4F9C]">
+                            <span>{{ $srv->name }} ({{ $srv->code_prefix }})</span>
+                        </label>
+                    @endforeach
                 </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nama Loket</label>
-                    <input type="text" name="name" required placeholder="Contoh: Loket 3"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Penugasan Layanan PST</label>
-                    <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200 max-h-40 overflow-y-auto">
-                        @foreach($services as $srv)
-                            <label class="flex items-center space-x-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                                <input type="checkbox" name="service_ids[]" value="{{ $srv->id }}" checked class="h-4 w-4 text-blue-600 rounded">
-                                <span>{{ $srv->name }} ({{ $srv->code_prefix }})</span>
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
-                <div class="pt-3 flex justify-end space-x-2 border-t">
-                    <button type="button" onclick="closeCreateModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-xs text-slate-700">Batal</button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 font-bold text-xs text-white shadow">Simpan Loket</button>
-                </div>
-            </form>
-        </div>
-    </div>
+            </fieldset>
+            <label for="edit-counter-active" class="inline-flex items-center gap-2 text-xs font-semibold text-[#0F172A] cursor-pointer">
+                <input type="checkbox" id="edit-counter-active" name="is_active" value="1" class="h-4 w-4 rounded border-[#CBD5E1] accent-[#0B4F9C]">
+                <span>Loket Siap Operasional (Aktif)</span>
+            </label>
+            <div class="pt-3 flex justify-end gap-2 border-t border-[#DCE3EC]">
+                <button type="button" data-dialog-close="edit-counter-modal"
+                        class="rounded-md border border-[#CBD5E1] bg-white hover:bg-[#F4F6F9] px-4 py-2 text-xs font-semibold text-[#334155]">Batal</button>
+                <button type="submit"
+                        class="rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] px-4 py-2 text-xs font-semibold text-white">Simpan Perubahan</button>
+            </div>
+        </form>
+    </x-modal>
+@endsection
 
-    <!-- Modal Edit Loket & Penugasan Layanan -->
-    <div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-            <h3 class="text-xl font-black text-slate-800 mb-4">Edit Meja Loket & Penugasan</h3>
-            <form id="edit-form" method="POST" class="space-y-4">
-                @csrf
-                @method('PUT')
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nomor Fisik Loket</label>
-                    <input type="number" id="edit-counter-number" name="counter_number" required min="1"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-mono font-bold text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nama Loket</label>
-                    <input type="text" id="edit-name" name="name" required
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Penugasan Kategori Layanan</label>
-                    <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200 max-h-40 overflow-y-auto">
-                        @foreach($services as $srv)
-                            <label class="flex items-center space-x-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                                <input type="checkbox" name="service_ids[]" value="{{ $srv->id }}" id="edit-service-{{ $srv->id }}" class="edit-service-cb h-4 w-4 text-blue-600 rounded">
-                                <span>{{ $srv->name }} ({{ $srv->code_prefix }})</span>
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="edit-is-active" name="is_active" value="1" class="h-4 w-4 text-blue-600 rounded">
-                    <label for="edit-is-active" class="text-xs font-bold text-slate-700">Loket Siap Operasional (Aktif)</label>
-                </div>
-                <div class="pt-3 flex justify-end space-x-2 border-t">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-xs text-slate-700">Batal</button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 font-bold text-xs text-white shadow">Simpan Perubahan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        function openCreateModal() {
-            document.getElementById('create-modal').classList.remove('hidden');
-        }
-        function closeCreateModal() {
-            document.getElementById('create-modal').classList.add('hidden');
-        }
-        function openEditModal(id, name, counterNumber, assignedServiceIds, isActive) {
-            document.getElementById('edit-form').action = `/admin/counters/${id}`;
-            document.getElementById('edit-name').value = name;
-            document.getElementById('edit-counter-number').value = counterNumber;
-            document.getElementById('edit-is-active').checked = isActive;
-
-            document.querySelectorAll('.edit-service-cb').forEach(cb => {
-                cb.checked = assignedServiceIds.includes(parseInt(cb.value));
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('[data-edit-counter]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const data = JSON.parse(btn.dataset.payload || '{}');
+                document.getElementById('edit-counter-form').action = data.action || '';
+                document.getElementById('edit-counter-name').value = data.name || '';
+                document.getElementById('edit-counter-number').value = data.counter_number || 1;
+                document.getElementById('edit-counter-active').checked = Boolean(data.is_active);
+                const ids = Array.isArray(data.service_ids) ? data.service_ids.map(Number) : [];
+                document.querySelectorAll('.edit-counter-service-cb').forEach((cb) => {
+                    cb.checked = ids.includes(Number(cb.value));
+                });
+                window.PstUi.openModal('edit-counter-modal');
             });
-
-            document.getElementById('edit-modal').classList.remove('hidden');
-        }
-        function closeEditModal() {
-            document.getElementById('edit-modal').classList.add('hidden');
-        }
-    </script>
-</body>
-</html>
+        });
+    });
+</script>
+@endpush

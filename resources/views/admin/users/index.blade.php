@@ -1,120 +1,73 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Pengguna Sistem - Administrator PST BPS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-100 min-h-screen flex flex-col justify-between selection:bg-none">
-    <!-- Navbar Admin -->
-    <header class="bg-blue-950 text-white shadow-md py-4 px-8 flex justify-between items-center">
-        <div class="flex items-center space-x-4">
-            <a href="{{ route('home') }}" title="Kembali ke Beranda Portal PST"
-                class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-900 font-black text-xl shadow hover:scale-105 transition-transform">
-                BPS
-            </a>
+@extends('layouts.workspace', [
+    'activeNav' => 'users',
+    'pageTitle' => 'Pengelolaan Akun Pengguna & Petugas Loket',
+    'pageSubtitle' => 'Badan Pusat Statistik Kota Tasikmalaya',
+])
+
+@section('content')
+    <div class="space-y-6">
+        <x-flash-alerts />
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-bold tracking-wide">Pengelolaan Akun Pengguna & Petugas Loket</h1>
-                <p class="text-xs text-blue-200">Badan Pusat Statistik Kota Tasikmalaya</p>
+                <h1 id="users-heading" class="text-lg font-bold text-[#0F172A]">Daftar Akun Pengguna Sistem</h1>
+                <p class="text-xs text-[#475569] mt-0.5">Tambah akun petugas loket baru, kelola status aktif/nonaktif, dan atur ulang kata sandi dinas.</p>
             </div>
-        </div>
-
-        <div class="flex items-center space-x-6">
-            <nav class="flex space-x-4 text-sm font-semibold">
-                <a href="{{ route('admin.dashboard') }}" class="text-blue-200 hover:text-white transition pb-1">Dashboard</a>
-                <a href="{{ route('admin.reports.index') }}" class="text-blue-200 hover:text-white transition pb-1">Rekap Laporan</a>
-                <a href="{{ route('admin.services.index') }}" class="text-blue-200 hover:text-white transition pb-1">Layanan</a>
-                <a href="{{ route('admin.counters.index') }}" class="text-blue-200 hover:text-white transition pb-1">Loket</a>
-                <a href="{{ route('admin.users.index') }}" class="text-emerald-400 border-b-2 border-emerald-400 pb-1">Pengguna</a>
-                <a href="{{ route('counter.index') }}" class="text-blue-200 hover:text-white transition pb-1">Buka Loket</a>
-            </nav>
-
-            <div class="border-l border-blue-800 pl-6 flex items-center space-x-3">
-                <span class="text-xs text-blue-200">Admin: <strong>{{ Auth::user()->name }}</strong></span>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="bg-red-700 hover:bg-red-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition shadow">
-                        Keluar
-                    </button>
-                </form>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full space-y-6">
-        @if(session('success'))
-            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-sm">
-                <span class="flex items-center space-x-2">
-                    <span>✓</span>
-                    <span>{{ session('success') }}</span>
-                </span>
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div class="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm shadow-sm">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="text-2xl font-black text-slate-800">Daftar Akun Pengguna Sistem</h2>
-                <p class="text-slate-500 text-sm mt-0.5">Tambah akun petugas loket baru, kelola status aktif/nonaktif, dan atur ulang kata sandi dinas.</p>
-            </div>
-            <button type="button" onclick="openCreateModal()"
-                class="bg-blue-900 hover:bg-blue-800 text-white font-bold px-4 py-2.5 rounded-xl shadow transition text-sm flex items-center space-x-2">
-                <span>+</span>
+            <button type="button"
+                    data-dialog-open="create-user-modal"
+                    class="inline-flex items-center gap-1.5 rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] px-4 py-2 text-xs font-semibold text-white shrink-0">
+                <x-icon name="plus" class="w-4 h-4" />
                 <span>Tambah Pengguna Baru</span>
             </button>
         </div>
 
-        <!-- Tabel Pengguna -->
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-700">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase text-slate-500 tracking-wider">
+        <section class="bg-white rounded-xl border border-[#DCE3EC] overflow-hidden">
+            <x-table-wrapper labelled-by="users-heading">
+                <table class="w-full text-left text-sm text-[#334155]">
+                    <thead class="bg-[#EDF1F6] border-b border-[#DCE3EC] text-[11px] font-semibold uppercase tracking-wider text-[#475569]">
                         <tr>
-                            <th class="py-3.5 px-5">Nama Pegawai</th>
-                            <th class="py-3.5 px-5">Username</th>
-                            <th class="py-3.5 px-5">Email Dinas</th>
-                            <th class="py-3.5 px-5 text-center">Peran (Role)</th>
-                            <th class="py-3.5 px-5 text-center">Status Akun</th>
-                            <th class="py-3.5 px-5 text-center">Aksi Manajemen</th>
+                            <th scope="col" class="py-3 px-4">Nama Pegawai</th>
+                            <th scope="col" class="py-3 px-4">Username</th>
+                            <th scope="col" class="py-3 px-4">Email Dinas</th>
+                            <th scope="col" class="py-3 px-4 text-center">Peran</th>
+                            <th scope="col" class="py-3 px-4 text-center">Status Akun</th>
+                            <th scope="col" class="py-3 px-4 text-center">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-[#EDF1F6]">
                         @foreach($users as $u)
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="py-4 px-5">
-                                    <div class="font-bold text-slate-900">{{ $u->name }}</div>
+                            @php
+                                $resetPayload = [
+                                    'action' => route('admin.users.resetPassword', $u->id),
+                                    'name' => $u->name,
+                                    'username' => $u->username,
+                                ];
+                            @endphp
+                            <tr class="hover:bg-[#F8FAFC]">
+                                <td class="py-3.5 px-4">
+                                    <div class="font-semibold text-[#0F172A]">{{ $u->name }}</div>
                                     @if($u->id === Auth::id())
-                                        <span class="text-[10px] text-blue-600 font-extrabold uppercase">(Akun Anda)</span>
+                                        <span class="text-[10px] font-bold uppercase text-[#0B4F9C]">Akun Anda</span>
                                     @endif
                                 </td>
-                                <td class="py-4 px-5 font-mono font-semibold text-slate-700">{{ $u->username }}</td>
-                                <td class="py-4 px-5 text-xs text-slate-600">{{ $u->email }}</td>
-                                <td class="py-4 px-5 text-center">
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase {{ $u->role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
-                                        {{ $u->role }}
-                                    </span>
+                                <td class="py-3.5 px-4 font-mono text-xs font-semibold text-[#334155]">{{ $u->username }}</td>
+                                <td class="py-3.5 px-4 text-xs text-[#475569]">{{ $u->email }}</td>
+                                <td class="py-3.5 px-4 text-center">
+                                    <x-badge :tone="$u->role === 'admin' ? 'teal' : 'cobalt'">
+                                        {{ strtoupper($u->role) }}
+                                    </x-badge>
                                 </td>
-                                <td class="py-4 px-5 text-center">
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase {{ $u->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800' }}">
+                                <td class="py-3.5 px-4 text-center">
+                                    <x-badge :tone="$u->is_active ? 'green' : 'danger'">
                                         {{ $u->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </span>
+                                    </x-badge>
                                 </td>
-                                <td class="py-4 px-5 text-center">
-                                    <div class="flex items-center justify-center space-x-2">
+                                <td class="py-3.5 px-4 text-center">
+                                    <div class="inline-flex items-center justify-center gap-2">
                                         <button type="button"
-                                            onclick="openResetModal({{ $u->id }}, '{{ addslashes($u->name) }}', '{{ $u->username }}')"
-                                            class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                                                data-reset-user
+                                                data-payload="{{ json_encode($resetPayload) }}"
+                                                class="rounded-md border border-[#CBD5E1] bg-white hover:bg-[#EDF1F6] px-2.5 py-1 text-xs font-semibold text-[#0F172A]">
                                             Reset Password
                                         </button>
 
@@ -123,7 +76,7 @@
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit"
-                                                    class="text-xs font-bold px-3 py-1.5 rounded-lg transition {{ $u->is_active ? 'bg-rose-100 hover:bg-rose-200 text-rose-800' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800' }}">
+                                                        class="rounded-md px-2.5 py-1 text-xs font-semibold {{ $u->is_active ? 'border border-red-200 bg-red-50 hover:bg-red-100 text-red-700' : 'border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-[#15803D]' }}">
                                                     {{ $u->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                                 </button>
                                             </form>
@@ -134,86 +87,80 @@
                         @endforeach
                     </tbody>
                 </table>
+            </x-table-wrapper>
+        </section>
+    </div>
+
+    <x-modal id="create-user-modal" title="Tambah Akun Pegawai / Petugas Baru" :reset-on-close="true" max-width="max-w-md">
+        <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-4">
+            @csrf
+            <div>
+                <label for="create-user-name" class="block text-xs font-semibold text-[#0F172A] mb-1">Nama Lengkap Pegawai</label>
+                <input type="text" id="create-user-name" name="name" required autofocus placeholder="Contoh: Rina Melati, S.Tr.Stat."
+                       class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2 text-sm text-[#0F172A]">
             </div>
-        </div>
-    </main>
+            <div>
+                <label for="create-user-username" class="block text-xs font-semibold text-[#0F172A] mb-1">Nama Pengguna (Username)</label>
+                <input type="text" id="create-user-username" name="username" required autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Contoh: petugas2"
+                       class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2 text-sm font-mono text-[#0F172A]">
+            </div>
+            <div>
+                <label for="create-user-email" class="block text-xs font-semibold text-[#0F172A] mb-1">Alamat Email Dinas</label>
+                <input type="email" id="create-user-email" name="email" required placeholder="petugas2@bps.go.id"
+                       class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2 text-sm text-[#0F172A]">
+            </div>
+            <div>
+                <label for="create-user-role" class="block text-xs font-semibold text-[#0F172A] mb-1">Peran Akses</label>
+                <select id="create-user-role" name="role" required class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2 text-sm text-[#0F172A]">
+                    <option value="petugas" selected>Petugas Loket Pelayanan</option>
+                    <option value="admin">Administrator PST</option>
+                </select>
+            </div>
+            <div>
+                <label for="create-user-password" class="block text-xs font-semibold text-[#0F172A] mb-1">Kata Sandi Awal</label>
+                <input type="password" id="create-user-password" name="password" required minlength="6" autocomplete="new-password" placeholder="Minimal 6 karakter"
+                       class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2 text-sm text-[#0F172A]">
+            </div>
+            <div class="pt-3 flex justify-end gap-2 border-t border-[#DCE3EC]">
+                <button type="button" data-dialog-close="create-user-modal"
+                        class="rounded-md border border-[#CBD5E1] bg-white hover:bg-[#F4F6F9] px-4 py-2 text-xs font-semibold text-[#334155]">Batal</button>
+                <button type="submit"
+                        class="rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] px-4 py-2 text-xs font-semibold text-white">Simpan Pengguna</button>
+            </div>
+        </form>
+    </x-modal>
 
-    <!-- Modal Tambah Pengguna -->
-    <div id="create-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-            <h3 class="text-xl font-black text-slate-800 mb-4">Tambah Akun Pegawai / Petugas Baru</h3>
-            <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nama Lengkap Pegawai</label>
-                    <input type="text" name="name" required placeholder="Contoh: Rina Melati, S.Tr.Stat."
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nama Pengguna (Username)</label>
-                    <input type="text" name="username" required placeholder="Contoh: petugas2"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-mono text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Alamat Email Dinas</label>
-                    <input type="email" name="email" required placeholder="petugas2@bps.go.id"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Peran Akses</label>
-                    <select name="role" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                        <option value="petugas" selected>Petugas Loket Pelayanan</option>
-                        <option value="admin">Administrator PST</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Kata Sandi Awal</label>
-                    <input type="password" name="password" required placeholder="Minimal 6 karakter"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                </div>
-                <div class="pt-3 flex justify-end space-x-2 border-t">
-                    <button type="button" onclick="closeCreateModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-xs text-slate-700">Batal</button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 font-bold text-xs text-white shadow">Simpan Pengguna</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <x-modal id="reset-user-modal" title="Atur Ulang Kata Sandi" :reset-on-close="true" max-width="max-w-md">
+        <p id="reset-modal-desc" class="text-xs text-[#475569] mb-4"></p>
+        <form id="reset-user-form" method="POST" class="space-y-4">
+            @csrf
+            <div>
+                <label for="reset-new-password" class="block text-xs font-semibold text-[#0F172A] mb-1">Kata Sandi Baru</label>
+                <input type="password" id="reset-new-password" name="new_password" required minlength="6" autofocus autocomplete="new-password" placeholder="Minimal 6 karakter"
+                       class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2 text-sm text-[#0F172A]">
+            </div>
+            <div class="pt-3 flex justify-end gap-2 border-t border-[#DCE3EC]">
+                <button type="button" data-dialog-close="reset-user-modal"
+                        class="rounded-md border border-[#CBD5E1] bg-white hover:bg-[#F4F6F9] px-4 py-2 text-xs font-semibold text-[#334155]">Batal</button>
+                <button type="submit"
+                        class="rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] px-4 py-2 text-xs font-semibold text-white">Atur Ulang Password</button>
+            </div>
+        </form>
+    </x-modal>
+@endsection
 
-    <!-- Modal Reset Password -->
-    <div id="reset-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-            <h3 class="text-xl font-black text-slate-800 mb-2">Atur Ulang Kata Sandi</h3>
-            <p id="reset-modal-desc" class="text-xs text-slate-500 mb-4"></p>
-            <form id="reset-form" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Kata Sandi Baru</label>
-                    <input type="password" name="new_password" required placeholder="Minimal 6 karakter"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                </div>
-                <div class="pt-3 flex justify-end space-x-2 border-t">
-                    <button type="button" onclick="closeResetModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-xs text-slate-700">Batal</button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 font-bold text-xs text-white shadow">Atur Ulang Password</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        function openCreateModal() {
-            document.getElementById('create-modal').classList.remove('hidden');
-        }
-        function closeCreateModal() {
-            document.getElementById('create-modal').classList.add('hidden');
-        }
-        function openResetModal(id, name, username) {
-            document.getElementById('reset-form').action = `/admin/users/${id}/reset-password`;
-            document.getElementById('reset-modal-desc').innerText = `Masukkan kata sandi baru untuk akun ${name} (${username}).`;
-            document.getElementById('reset-modal').classList.remove('hidden');
-        }
-        function closeResetModal() {
-            document.getElementById('reset-modal').classList.add('hidden');
-        }
-    </script>
-</body>
-</html>
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('[data-reset-user]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const data = JSON.parse(btn.dataset.payload || '{}');
+                document.getElementById('reset-user-form').action = data.action || '';
+                document.getElementById('reset-modal-desc').textContent =
+                    `Masukkan kata sandi baru untuk akun ${data.name || ''} (${data.username || ''}).`;
+                window.PstUi.openModal('reset-user-modal');
+            });
+        });
+    });
+</script>
+@endpush

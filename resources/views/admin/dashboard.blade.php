@@ -1,83 +1,46 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Dashboard Rekapitulasi - Administrator PST BPS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js Dimuat Secara Lokal untuk Mendukung Lingkungan LAN Offline -->
+@extends('layouts.workspace', [
+    'activeNav' => 'dashboard',
+    'pageTitle' => 'Mini Dashboard Rekapitulasi PST',
+    'pageSubtitle' => 'Badan Pusat Statistik Kota Tasikmalaya',
+])
+
+@push('head')
     <script src="{{ asset('vendor/chartjs/chart.umd.js') }}"></script>
-</head>
-<body class="bg-slate-100 min-h-screen flex flex-col justify-between selection:bg-none font-sans">
-    <!-- Navbar Admin -->
-    <header class="bg-blue-950 text-white shadow-md py-4 px-8 flex justify-between items-center border-b border-blue-900">
-        <div class="flex items-center space-x-4">
-            <a href="{{ route('home') }}" title="Kembali ke Beranda Portal PST"
-                class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-900 font-black text-xl shadow hover:scale-105 transition-transform">
-                BPS
-            </a>
-            <div>
-                <h1 class="text-xl font-bold tracking-wide">Mini Dashboard Rekapitulasi Pelayanan Statistik</h1>
-                <p class="text-xs text-blue-200">Badan Pusat Statistik Kota Tasikmalaya</p>
-            </div>
-        </div>
+@endpush
 
-        <div class="flex items-center space-x-6">
-            <nav class="flex space-x-4 text-sm font-semibold">
-                <a href="{{ route('admin.dashboard') }}" class="text-emerald-400 border-b-2 border-emerald-400 pb-1">Dashboard</a>
-                <a href="{{ route('admin.reports.index') }}" class="text-blue-200 hover:text-white transition pb-1">Rekap Laporan</a>
-                <a href="{{ route('admin.services.index') }}" class="text-blue-200 hover:text-white transition pb-1">Layanan</a>
-                <a href="{{ route('admin.counters.index') }}" class="text-blue-200 hover:text-white transition pb-1">Loket</a>
-                <a href="{{ route('admin.users.index') }}" class="text-blue-200 hover:text-white transition pb-1">Pengguna</a>
-                <a href="{{ route('counter.index') }}" class="text-blue-200 hover:text-white transition pb-1">Buka Loket</a>
-            </nav>
-
-            <div class="border-l border-blue-800 pl-6 flex items-center space-x-3">
-                <span class="text-xs text-blue-200">Admin: <strong>{{ Auth::user()->name }}</strong></span>
-                <a href="{{ route('password.change') }}" class="bg-blue-900 hover:bg-blue-800 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold transition border border-blue-700">
-                    Kata Sandi
-                </a>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="bg-red-700 hover:bg-red-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition shadow">
-                        Keluar
-                    </button>
-                </form>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Dashboard -->
-    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full space-y-8">
-        <!-- Peringatan Keamanan Bila Masih Memakai Kata Sandi Bawaan -->
+@section('content')
+    <div class="space-y-6">
+        {{-- Default Password Security Notice --}}
         @if($isUsingDefaultPassword)
-            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-2xl shadow-sm flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <span class="text-2xl">⚠️</span>
+            <div role="alert" class="rounded-xl border border-orange-200 border-l-4 border-l-[#C2410C] bg-orange-50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-start gap-3">
+                    <x-icon name="warning" class="w-5 h-5 text-[#C2410C] shrink-0 mt-0.5" />
                     <div>
-                        <h4 class="text-sm font-bold text-amber-800">Peringatan Keamanan Akun</h4>
-                        <p class="text-xs text-amber-700 mt-0.5">Akun Anda saat ini masih menggunakan kata sandi bawaan sistem. Demi keamanan operasional data PST, segera perbarui kata sandi Anda.</p>
+                        <h2 class="text-sm font-bold text-[#0F172A]">Peringatan Keamanan Akun</h2>
+                        <p class="text-xs text-[#475569] mt-0.5">Akun Anda masih menggunakan kata sandi bawaan sistem. Segera perbarui kata sandi untuk menjaga keamanan data operasional PST.</p>
                     </div>
                 </div>
-                <a href="{{ route('password.change') }}" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow shrink-0">
+                <a href="{{ route('password.change') }}"
+                   class="inline-flex items-center justify-center rounded-md bg-[#C2410C] hover:bg-orange-800 px-3.5 py-2 text-xs font-semibold text-white shrink-0">
                     Ubah Kata Sandi
                 </a>
             </div>
         @endif
 
-        <!-- Filter Bulan dan Tahun Eksplisit -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {{-- Explicit Month & Year Filter --}}
+        <section class="bg-white rounded-xl border border-[#DCE3EC] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h2 class="text-xl font-black text-slate-800">Ringkasan Evaluasi Kinerja PST</h2>
-                <p class="text-slate-500 text-xs mt-0.5">
-                    Periode Aktif: <strong>{{ $monthNames[$selectedMonth] }} {{ $selectedYear }}</strong> (Bulan Sebelumnya: {{ $monthNames[$prevMonth] }} {{ $prevYear }})
+                <h1 class="text-lg font-bold text-[#0F172A]">Ringkasan Evaluasi Kinerja PST</h1>
+                <p class="text-xs text-[#475569] mt-0.5">
+                    Periode Aktif: <strong class="font-semibold text-[#0F172A]">{{ $monthNames[$selectedMonth] }} {{ $selectedYear }}</strong>
+                    (Pembanding: {{ $monthNames[$prevMonth] }} {{ $prevYear }})
                 </p>
             </div>
 
-            <form action="{{ route('admin.dashboard') }}" method="GET" class="flex items-center space-x-3">
+            <form action="{{ route('admin.dashboard') }}" method="GET" class="flex flex-wrap items-end gap-2.5">
                 <div>
-                    <label for="month" class="sr-only">Bulan</label>
-                    <select id="month" name="month" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    <label for="month" class="block text-[11px] font-semibold text-[#475569] mb-1">Bulan</label>
+                    <select id="month" name="month" class="rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-xs font-semibold text-[#0F172A]">
                         @foreach($monthNames as $num => $name)
                             <option value="{{ $num }}" {{ $selectedMonth === $num ? 'selected' : '' }}>
                                 {{ $name }}
@@ -87,8 +50,8 @@
                 </div>
 
                 <div>
-                    <label for="year" class="sr-only">Tahun</label>
-                    <select id="year" name="year" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    <label for="year" class="block text-[11px] font-semibold text-[#475569] mb-1">Tahun</label>
+                    <select id="year" name="year" class="rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-xs font-semibold text-[#0F172A] tabular-nums-strict">
                         @for($y = 2024; $y <= 2028; $y++)
                             <option value="{{ $y }}" {{ $selectedYear === $y ? 'selected' : '' }}>
                                 {{ $y }}
@@ -97,301 +60,302 @@
                     </select>
                 </div>
 
-                <button type="submit" class="bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition">
+                <button type="submit"
+                        class="rounded-md bg-[#0B4F9C] hover:bg-[#083D7A] px-4 py-2 text-xs font-semibold text-white">
                     Terapkan Filter
                 </button>
             </form>
-        </div>
+        </section>
 
-        <!-- Baris 1: Kartu KPI Utama & Komparasi MoM -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Total Kunjungan Periode -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between">
-                <div class="flex justify-between items-start">
+        {{-- Row 1: 4 Structured KPI Cards --}}
+        <section aria-label="Indikator Kinerja Utama" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl border border-[#DCE3EC] p-5 flex flex-col justify-between">
+                <div class="flex items-start justify-between gap-3">
                     <div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Kunjungan</span>
-                        <div class="text-4xl font-extrabold text-blue-900 mt-2">{{ $totalMonth }}</div>
+                        <span class="text-xs font-semibold text-[#475569]">Total Kunjungan</span>
+                        <div class="text-3xl font-bold text-[#0A2540] mt-1.5 tabular-nums-strict">{{ $totalMonth }}</div>
                     </div>
-                    <div class="w-12 h-12 bg-blue-100 text-blue-800 rounded-2xl flex items-center justify-center text-2xl font-bold">
-                        👥
-                    </div>
-                </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span class="text-slate-500">Bulan lalu: <strong>{{ $prevMonthTotal }}</strong></span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md font-bold text-[11px] {{ $diffTotal >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800' }}">
-                        {{ $diffTotal >= 0 ? '↑ +' : '↓ ' }}{{ $growthRate }}%
+                    <span class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 text-[#0B4F9C] flex items-center justify-center shrink-0">
+                        <x-icon name="users" class="w-5 h-5" />
                     </span>
                 </div>
-            </div>
-
-            <!-- Status Antrean Periode -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Selesai Dilayani</span>
-                        <div class="text-4xl font-extrabold text-emerald-600 mt-2">{{ $completedMonth }}</div>
-                    </div>
-                    <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center text-2xl font-bold">
-                        ✓
-                    </div>
-                </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 grid grid-cols-3 gap-1 text-center text-[10px] font-bold text-slate-600">
-                    <div class="bg-slate-50 p-1 rounded-lg">Melayani: {{ $servingMonth }}</div>
-                    <div class="bg-slate-50 p-1 rounded-lg">Tunggu: {{ $waitingMonth }}</div>
-                    <div class="bg-slate-50 p-1 rounded-lg text-rose-600">Skip: {{ $skippedMonth }}</div>
+                <div class="mt-4 pt-3 border-t border-[#EDF1F6] flex items-center justify-between text-xs tabular-nums-strict">
+                    <span class="text-[#475569]">Bulan lalu: <strong class="text-[#0F172A]">{{ $prevMonthTotal }}</strong></span>
+                    <x-badge :tone="$diffTotal >= 0 ? 'green' : 'danger'">
+                        {{ $diffTotal >= 0 ? 'Naik +' : 'Turun ' }}{{ $growthRate }}%
+                    </x-badge>
                 </div>
             </div>
 
-            <!-- Rata-rata Durasi Tunggu -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between">
-                <div class="flex justify-between items-start">
+            <div class="bg-white rounded-xl border border-[#DCE3EC] p-5 flex flex-col justify-between">
+                <div class="flex items-start justify-between gap-3">
                     <div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Rerata Waktu Tunggu</span>
-                        <div class="text-4xl font-extrabold text-amber-600 mt-2">{{ $avgWaitMinutes }} <span class="text-base font-semibold">mnt</span></div>
+                        <span class="text-xs font-semibold text-[#475569]">Selesai Dilayani</span>
+                        <div class="text-3xl font-bold text-[#15803D] mt-1.5 tabular-nums-strict">{{ $completedMonth }}</div>
                     </div>
-                    <div class="w-12 h-12 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center text-2xl font-bold">
-                        ⏳
-                    </div>
+                    <span class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 text-[#15803D] flex items-center justify-center shrink-0">
+                        <x-icon name="check" class="w-5 h-5" />
+                    </span>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500">
-                    Standar BPS: <span class="font-bold text-emerald-700">&lt; 15 Menit</span>
+                <div class="mt-4 pt-3 border-t border-[#EDF1F6] grid grid-cols-3 gap-1.5 text-center text-[11px] font-semibold text-[#475569] tabular-nums-strict">
+                    <div class="rounded bg-[#F4F6F9] py-1">Layani: {{ $servingMonth }}</div>
+                    <div class="rounded bg-[#F4F6F9] py-1">Tunggu: {{ $waitingMonth }}</div>
+                    <div class="rounded bg-red-50 text-red-700 py-1">Skip: {{ $skippedMonth }}</div>
                 </div>
             </div>
 
-            <!-- Rata-rata Durasi Pelayanan -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between">
-                <div class="flex justify-between items-start">
+            <div class="bg-white rounded-xl border border-[#DCE3EC] p-5 flex flex-col justify-between">
+                <div class="flex items-start justify-between gap-3">
                     <div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Rerata Durasi Layanan</span>
-                        <div class="text-4xl font-extrabold text-indigo-600 mt-2">{{ $avgServeMinutes }} <span class="text-base font-semibold">mnt</span></div>
+                        <span class="text-xs font-semibold text-[#475569]">Rerata Waktu Tunggu</span>
+                        <div class="text-3xl font-bold text-[#C2410C] mt-1.5 tabular-nums-strict">
+                            {{ $avgWaitMinutes }} <span class="text-sm font-medium text-[#475569]">mnt</span>
+                        </div>
                     </div>
-                    <div class="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-2xl flex items-center justify-center text-2xl font-bold">
-                        ⏱️
-                    </div>
+                    <span class="w-10 h-10 rounded-lg bg-orange-50 border border-orange-200 text-[#C2410C] flex items-center justify-center shrink-0">
+                        <x-icon name="clock" class="w-5 h-5" />
+                    </span>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500">
+                <div class="mt-4 pt-3 border-t border-[#EDF1F6] text-xs text-[#475569]">
+                    Standar BPS: <strong class="font-semibold text-[#15803D]">&lt; 15 Menit</strong>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-[#DCE3EC] p-5 flex flex-col justify-between">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <span class="text-xs font-semibold text-[#475569]">Rerata Durasi Layanan</span>
+                        <div class="text-3xl font-bold text-[#0F766E] mt-1.5 tabular-nums-strict">
+                            {{ $avgServeMinutes }} <span class="text-sm font-medium text-[#475569]">mnt</span>
+                        </div>
+                    </div>
+                    <span class="w-10 h-10 rounded-lg bg-teal-50 border border-teal-200 text-[#0F766E] flex items-center justify-center shrink-0">
+                        <x-icon name="chart" class="w-5 h-5" />
+                    </span>
+                </div>
+                <div class="mt-4 pt-3 border-t border-[#EDF1F6] text-xs text-[#475569]">
                     Waktu konsultasi per pemohon
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Baris 2: Grafik Tren Harian & Jam Sibuk Pelayanan -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Grafik Tren Harian (2/3 Lebar) -->
-            <div class="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-                <div class="flex justify-between items-center mb-4">
+        {{-- Row 2: Daily Trend & Peak Hours --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <section class="lg:col-span-2 bg-white rounded-xl border border-[#DCE3EC] p-5">
+                <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h3 class="text-base font-black text-slate-800">Tren Volume Kunjungan Harian</h3>
-                        <p class="text-xs text-slate-500">Grafik jumlah pemohon per hari pada {{ $monthNames[$selectedMonth] }} {{ $selectedYear }}</p>
+                        <h2 class="text-sm font-bold text-[#0F172A]">Tren Volume Kunjungan Harian</h2>
+                        <p class="text-xs text-[#475569]">Pemohon per tanggal pada {{ $monthNames[$selectedMonth] }} {{ $selectedYear }}</p>
                     </div>
-                    <span class="text-xs font-bold bg-blue-50 text-blue-800 px-3 py-1 rounded-full">Harian</span>
+                    <x-badge tone="cobalt">Harian</x-badge>
                 </div>
                 <div class="h-64 relative">
                     <canvas id="trendChart"></canvas>
                 </div>
-            </div>
+            </section>
 
-            <!-- Grafik Analisis Jam Sibuk (1/3 Lebar) -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-                <div class="flex justify-between items-center mb-4">
+            <section class="bg-white rounded-xl border border-[#DCE3EC] p-5">
+                <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h3 class="text-base font-black text-slate-800">Jam Sibuk Pelayanan</h3>
-                        <p class="text-xs text-slate-500">Distribusi waktu kedatangan pengunjung (WIB)</p>
+                        <h2 class="text-sm font-bold text-[#0F172A]">Jam Sibuk Pelayanan</h2>
+                        <p class="text-xs text-[#475569]">Distribusi waktu kedatangan (WIB)</p>
                     </div>
-                    <span class="text-xs font-bold bg-amber-50 text-amber-800 px-3 py-1 rounded-full">Jam Sibuk</span>
+                    <x-badge tone="orange">Peak Hours</x-badge>
                 </div>
                 <div class="h-64 relative">
                     <canvas id="busyHoursChart"></canvas>
                 </div>
-            </div>
+            </section>
         </div>
 
-        <!-- Baris 3: Distribusi Layanan PST & Kategori Pemohon -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Distribusi Layanan PST -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-                <h3 class="text-base font-black text-slate-800 mb-1">Distribusi Akses Kategori Layanan PST</h3>
-                <p class="text-xs text-slate-500 mb-4">Proporsi permohonan berdasarkan 4 layanan resmi BPS</p>
+        {{-- Row 3: Service Distribution & Institution Type --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <section class="bg-white rounded-xl border border-[#DCE3EC] p-5">
+                <h2 class="text-sm font-bold text-[#0F172A]">Distribusi Akses Kategori Layanan PST</h2>
+                <p class="text-xs text-[#475569] mb-4">Proporsi permohonan berdasarkan 4 layanan resmi BPS</p>
                 <div class="h-64 relative flex items-center justify-center">
                     <canvas id="serviceChart"></canvas>
                 </div>
-            </div>
+            </section>
 
-            <!-- Proporsi Kategori Pemohon -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-                <h3 class="text-base font-black text-slate-800 mb-1">Proporsi Kategori Instansi Pemohon</h3>
-                <p class="text-xs text-slate-500 mb-4">Segmentasi asal pengunjung (Pendidikan, Pemerintah, Swasta, LSM, Umum)</p>
+            <section class="bg-white rounded-xl border border-[#DCE3EC] p-5">
+                <h2 class="text-sm font-bold text-[#0F172A]">Proporsi Kategori Instansi Pemohon</h2>
+                <p class="text-xs text-[#475569] mb-4">Segmentasi asal pengunjung (Pendidikan, Pemerintah, Swasta, LSM, Umum)</p>
                 <div class="h-64 relative flex items-center justify-center">
                     <canvas id="institutionChart"></canvas>
                 </div>
-            </div>
+            </section>
         </div>
 
-        <!-- Baris 4: Tabel 10 Kunjungan Terakhir Periode -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-            <div class="flex justify-between items-center mb-4">
+        {{-- Row 4: Recent 10 Visitors Table --}}
+        <section class="bg-white rounded-xl border border-[#DCE3EC] overflow-hidden">
+            <div class="p-5 border-b border-[#DCE3EC] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h3 class="text-base font-black text-slate-800">Daftar Tamu Terverifikasi Terakhir (Bulan Ini)</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Daftar buku tamu digital pengunjung yang selesai dilayani</p>
+                    <h2 id="recent-visitors-title" class="text-sm font-bold text-[#0F172A]">Daftar Tamu Terverifikasi Terakhir (Bulan Ini)</h2>
+                    <p class="text-xs text-[#475569] mt-0.5">Rekaman buku tamu digital pengunjung yang selesai dilayani</p>
                 </div>
                 <a href="{{ route('admin.reports.index', ['month' => $selectedMonth, 'year' => $selectedYear]) }}"
-                    class="text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3.5 py-2 rounded-xl transition">
-                    Lihat Seluruh Laporan & Ekspor PDF / CSV →
+                   class="inline-flex items-center gap-1.5 rounded-md border border-[#CBD5E1] bg-white hover:bg-[#EDF1F6] px-3.5 py-2 text-xs font-semibold text-[#0B4F9C] shrink-0">
+                    <span>Lihat Seluruh Laporan &amp; Ekspor PDF / CSV</span>
+                    <x-icon name="arrow-right" class="w-3.5 h-3.5" />
                 </a>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-700">
-                    <thead class="bg-slate-50 border-y border-slate-200 text-xs font-bold uppercase text-slate-500 tracking-wider">
+            <x-table-wrapper labelled-by="recent-visitors-title">
+                <table class="w-full text-left text-sm text-[#334155]">
+                    <thead class="bg-[#EDF1F6] border-b border-[#DCE3EC] text-[11px] font-semibold uppercase tracking-wider text-[#475569]">
                         <tr>
-                            <th class="py-3 px-4">Tanggal</th>
-                            <th class="py-3 px-4">Tiket</th>
-                            <th class="py-3 px-4">Nama Pengunjung</th>
-                            <th class="py-3 px-4">Instansi Asal</th>
-                            <th class="py-3 px-4">Layanan PST</th>
-                            <th class="py-3 px-4">Durasi Layanan</th>
-                            <th class="py-3 px-4">Kebutuhan Data</th>
+                            <th scope="col" class="py-3 px-4">Tanggal</th>
+                            <th scope="col" class="py-3 px-4">Tiket</th>
+                            <th scope="col" class="py-3 px-4">Nama Pengunjung</th>
+                            <th scope="col" class="py-3 px-4">Instansi Asal</th>
+                            <th scope="col" class="py-3 px-4">Layanan PST</th>
+                            <th scope="col" class="py-3 px-4">Durasi</th>
+                            <th scope="col" class="py-3 px-4">Kebutuhan Data</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-[#EDF1F6]">
                         @forelse($recentVisitors as $v)
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="py-3 px-4 text-xs text-slate-500">{{ $v->queue->queue_date->format('d/m/Y') }}</td>
-                                <td class="py-3 px-4 font-mono font-bold text-blue-900">{{ $v->queue->ticket_code }}</td>
-                                <td class="py-3 px-4 font-semibold text-slate-900">{{ $v->full_name }}</td>
-                                <td class="py-3 px-4 text-slate-600 text-xs">{{ $v->institution_name }}</td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
-                                        {{ $v->queue->service?->name ?? '-' }}
-                                    </span>
+                            <tr class="hover:bg-[#F8FAFC]">
+                                <td class="py-3 px-4 text-xs text-[#475569] whitespace-nowrap tabular-nums-strict">{{ $v->queue->queue_date->format('d/m/Y') }}</td>
+                                <td class="py-3 px-4 font-mono font-bold text-[#0A2540] whitespace-nowrap tabular-nums-strict">{{ $v->queue->ticket_code }}</td>
+                                <td class="py-3 px-4 font-semibold text-[#0F172A]">{{ $v->full_name }}</td>
+                                <td class="py-3 px-4 text-xs text-[#475569]">{{ $v->institution_name }}</td>
+                                <td class="py-3 px-4 whitespace-nowrap">
+                                    <x-badge tone="cobalt">{{ $v->queue->service?->name ?? '-' }}</x-badge>
                                 </td>
-                                <td class="py-3 px-4 text-xs font-mono text-slate-600">{{ round(($v->queue->serve_duration_seconds ?? 0) / 60, 1) }} mnt</td>
-                                <td class="py-3 px-4 text-xs text-slate-600 max-w-xs truncate">{{ $v->data_needs_description }}</td>
+                                <td class="py-3 px-4 text-xs font-mono text-[#475569] whitespace-nowrap tabular-nums-strict">
+                                    {{ round(($v->queue->serve_duration_seconds ?? 0) / 60, 1) }} mnt
+                                </td>
+                                <td class="py-3 px-4 text-xs text-[#475569] max-w-xs" title="{{ $v->data_needs_description }}">
+                                    <span class="block truncate">{{ $v->data_needs_description }}</span>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-8 text-slate-400 text-sm">Belum ada data kunjungan pada periode ini</td>
+                                <td colspan="7" class="text-center py-8 text-xs text-[#64748B]">Belum ada data kunjungan pada periode ini</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </main>
+            </x-table-wrapper>
+        </section>
+    </div>
+@endsection
 
-    <footer class="bg-white border-t border-slate-200 py-4 px-8 text-center text-xs text-slate-500">
-        Sistem Informasi Antrean & Rekapitulasi Pengunjung PST BPS Kota Tasikmalaya © 2026
-    </footer>
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof Chart === 'undefined') return;
 
-    <!-- Inisialisasi Grafik Chart.js Lokal -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // 1. Grafik Tren Harian
-            const ctxTrend = document.getElementById('trendChart')?.getContext('2d');
-            if (ctxTrend) {
-                new Chart(ctxTrend, {
-                    type: 'line',
-                    data: {
-                        labels: {!! json_encode($trendLabels) !!},
-                        datasets: [{
-                            label: 'Jumlah Kunjungan',
-                            data: {!! json_encode($trendData) !!},
-                            borderColor: '#1d4ed8',
-                            backgroundColor: 'rgba(29, 78, 216, 0.1)',
-                            borderWidth: 2.5,
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 3,
-                            pointBackgroundColor: '#1e40af'
-                        }]
+        Chart.defaults.color = '#475569';
+        Chart.defaults.font.family = "'Public Sans', 'Inter', system-ui, sans-serif";
+        Chart.defaults.font.size = 11;
+
+        const gridColor = '#E2E8F0';
+
+        const ctxTrend = document.getElementById('trendChart')?.getContext('2d');
+        if (ctxTrend) {
+            new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: {!! json_encode($trendLabels) !!},
+                    datasets: [{
+                        label: 'Jumlah Kunjungan',
+                        data: {!! json_encode($trendData) !!},
+                        borderColor: '#0B4F9C',
+                        backgroundColor: 'rgba(11, 79, 156, 0.08)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.25,
+                        pointRadius: 2.5,
+                        pointBackgroundColor: '#0A2540',
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } },
+                        x: { grid: { display: false } },
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { beginAtZero: true, ticks: { precision: 0 } },
-                            x: { grid: { display: false } }
-                        }
-                    }
-                });
-            }
+                },
+            });
+        }
 
-            // 2. Grafik Jam Sibuk (Peak Hours)
-            const ctxBusy = document.getElementById('busyHoursChart')?.getContext('2d');
-            if (ctxBusy) {
-                new Chart(ctxBusy, {
-                    type: 'bar',
-                    data: {
-                        labels: {!! json_encode($busyHourLabels) !!},
-                        datasets: [{
-                            label: 'Pemohon',
-                            data: {!! json_encode($busyHourData) !!},
-                            backgroundColor: '#f59e0b',
-                            borderRadius: 6
-                        }]
+        const ctxBusy = document.getElementById('busyHoursChart')?.getContext('2d');
+        if (ctxBusy) {
+            new Chart(ctxBusy, {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode($busyHourLabels) !!},
+                    datasets: [{
+                        label: 'Pemohon',
+                        data: {!! json_encode($busyHourData) !!},
+                        backgroundColor: '#C2410C',
+                        borderRadius: 4,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } },
+                        x: { grid: { display: false } },
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { beginAtZero: true, ticks: { precision: 0 } },
-                            x: { grid: { display: false } }
-                        }
-                    }
-                });
-            }
+                },
+            });
+        }
 
-            // 3. Grafik Distribusi Layanan PST (Donut)
-            const ctxService = document.getElementById('serviceChart')?.getContext('2d');
-            if (ctxService) {
-                new Chart(ctxService, {
-                    type: 'doughnut',
-                    data: {
-                        labels: {!! json_encode($serviceChartLabels) !!},
-                        datasets: [{
-                            data: {!! json_encode($serviceChartData) !!},
-                            backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6'],
-                            borderWidth: 2
-                        }]
+        const ctxService = document.getElementById('serviceChart')?.getContext('2d');
+        if (ctxService) {
+            new Chart(ctxService, {
+                type: 'doughnut',
+                data: {
+                    labels: {!! json_encode($serviceChartLabels) !!},
+                    datasets: [{
+                        data: {!! json_encode($serviceChartData) !!},
+                        backgroundColor: ['#0B4F9C', '#15803D', '#C2410C', '#0F766E'],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14, font: { size: 11 } } },
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
-                        }
-                    }
-                });
-            }
+                },
+            });
+        }
 
-            // 4. Grafik Proporsi Instansi Pemohon (Bar)
-            const ctxInst = document.getElementById('institutionChart')?.getContext('2d');
-            if (ctxInst) {
-                new Chart(ctxInst, {
-                    type: 'bar',
-                    data: {
-                        labels: {!! json_encode($institutionChartLabels) !!},
-                        datasets: [{
-                            label: 'Pemohon',
-                            data: {!! json_encode($institutionChartData) !!},
-                            backgroundColor: ['#3b82f6', '#059669', '#d97706', '#dc2626', '#64748b'],
-                            borderRadius: 6
-                        }]
+        const ctxInst = document.getElementById('institutionChart')?.getContext('2d');
+        if (ctxInst) {
+            new Chart(ctxInst, {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode($institutionChartLabels) !!},
+                    datasets: [{
+                        label: 'Pemohon',
+                        data: {!! json_encode($institutionChartData) !!},
+                        backgroundColor: ['#0B4F9C', '#15803D', '#C2410C', '#0F766E', '#475569'],
+                        borderRadius: 4,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } },
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { beginAtZero: true, ticks: { precision: 0 } },
-                            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
-                        }
-                    }
-                });
-            }
-        });
-    </script>
-</body>
-</html>
+                },
+            });
+        }
+    });
+</script>
+@endpush

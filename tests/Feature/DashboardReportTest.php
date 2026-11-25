@@ -222,4 +222,44 @@ class DashboardReportTest extends TestCase
         // Validasi magic number PDF: '%PDF-'
         $this->assertStringStartsWith('%PDF-', $content);
     }
+
+    public function test_admin_dashboard_and_reports_use_unified_workspace_readable_labels_and_no_cdn_or_emojis(): void
+    {
+        $service = Service::first();
+        $q = Queue::create([
+            'queue_date' => now()->toDateString(),
+            'ticket_code' => 'A-099',
+            'ticket_number' => 99,
+            'service_id' => $service->id,
+            'status' => 'completed',
+        ]);
+        GuestBook::create([
+            'queue_id' => $q->id,
+            'full_name' => 'Rina Kartika',
+            'phone_number' => '0811223344',
+            'institution_name' => 'Universitas Siliwangi',
+            'institution_type' => 'pendidikan',
+            'data_needs_description' => 'Data PDRB Kota Tasikmalaya',
+        ]);
+
+        $this->actingAs($this->admin);
+
+        $dashboard = $this->get('/admin/dashboard')->assertStatus(200);
+        $dashHtml = $dashboard->getContent();
+        $this->assertStringNotContainsString('cdn.tailwindcss.com', $dashHtml);
+        $this->assertStringNotContainsString('👥', $dashHtml);
+        $this->assertStringNotContainsString('⏳', $dashHtml);
+        $this->assertStringNotContainsString('⏱️', $dashHtml);
+        $this->assertStringContainsString('aria-current="page"', $dashHtml);
+        $this->assertStringContainsString(route('password.change'), $dashHtml);
+
+        $reports = $this->get('/admin/reports')->assertStatus(200);
+        $repHtml = $reports->getContent();
+        $this->assertStringNotContainsString('cdn.tailwindcss.com', $repHtml);
+        $this->assertStringNotContainsString('🔍', $repHtml);
+        $this->assertStringNotContainsString('📥', $repHtml);
+        $this->assertStringNotContainsString('📄', $repHtml);
+        $this->assertStringContainsString('Pendidikan / Riset', $repHtml);
+        $this->assertStringContainsString(route('password.change'), $repHtml);
+    }
 }

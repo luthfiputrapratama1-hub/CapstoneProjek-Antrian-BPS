@@ -153,4 +153,19 @@ class AdminManagementTest extends TestCase
         $this->get('/admin/users')->assertStatus(403);
         $this->post('/admin/users', [])->assertStatus(403);
     }
+
+    public function test_admin_crud_pages_use_native_dialog_json_payloads_and_consistent_workspace_header(): void
+    {
+        $this->actingAs($this->admin);
+
+        foreach (['/admin/services', '/admin/counters', '/admin/users'] as $url) {
+            $html = $this->get($url)->assertStatus(200)->getContent();
+            $this->assertStringNotContainsString('cdn.tailwindcss.com', $html);
+            $this->assertStringNotContainsString('addslashes', $html);
+            $this->assertStringContainsString('<dialog', $html);
+            $this->assertStringContainsString('data-payload=', $html);
+            $this->assertStringContainsString(route('password.change'), $html);
+            $this->assertStringContainsString('aria-current="page"', $html);
+        }
+    }
 }
