@@ -2,8 +2,236 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+@source '../js/**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Public Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+
+    --color-canvas: #F4F6F9;
+    --color-surface: #FFFFFF;
+    --color-surface-muted: #EDF1F6;
+    --color-border: #DCE3EC;
+    --color-border-strong: #CBD5E1;
+
+    --color-ink: #0F172A;
+    --color-ink-secondary: #475569;
+    --color-ink-muted: #64748B;
+
+    --color-bps-navy: #0A2540;
+    --color-bps-cobalt: #0B4F9C;
+    --color-bps-cobalt-hover: #083D7A;
+    --color-bps-green: #15803D;
+    --color-bps-orange: #C2410C;
+    --color-bps-teal: #0F766E;
+
+    --color-tv-canvas: #090E17;
+    --color-tv-surface: #111827;
+    --color-tv-elevated: #0D1420;
+    --color-tv-border: #1F2937;
+    --color-tv-amber: #F59E0B;
+    --color-tv-call: #EF4444;
+}
+
+@layer base {
+    html {
+        color: var(--color-ink);
+        background-color: var(--color-canvas);
+        font-family: var(--font-sans);
+    }
+
+    body {
+        min-height: 100dvh;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    a,
+    button,
+    select,
+    summary,
+    [role='button'] {
+        cursor: pointer;
+    }
+
+    button:disabled,
+    [aria-disabled='true'] {
+        cursor: not-allowed;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-bps-cobalt);
+        outline-offset: 2px;
+    }
+
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+        outline: 2px solid var(--color-bps-cobalt);
+        outline-offset: 0;
+        border-color: var(--color-bps-cobalt);
+    }
+
+    :is(input, select, textarea):is(:user-invalid, .user-invalid-fallback),
+    :is(input, select, textarea)[aria-invalid='true'] {
+        border-color: #DC2626;
+    }
+}
+
+/* Tabular numbers for clocks, queue codes, KPIs, and counts */
+.tabular-nums-strict {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Native accessible visually-hidden pattern */
+.visually-hidden:where(:not(:focus-within, :active)) {
+    position: absolute !important;
+    clip-path: inset(50%) !important;
+    overflow: hidden !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    white-space: nowrap !important;
+}
+
+/* Native <dialog> scroll containment and backdrop styling */
+dialog.pst-dialog {
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 0.75rem;
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    max-width: min(32rem, calc(100dvw - 2rem));
+    width: 100%;
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgb(15 23 42 / 0.12), 0 8px 10px -6px rgb(15 23 42 / 0.08);
+}
+
+dialog.pst-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+dialog:modal {
+    overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background-color: rgb(15 23 42 / 0.55);
+}
+
+/* Inline field error visibility */
+.field-error-text {
+    display: none;
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #B91C1C;
+}
+
+.field-error-text[data-visible='true'] {
+    display: block;
+}
+
+/* TV Display running ticker */
+@keyframes pst-marquee {
+    0% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.tv-ticker-viewport {
+    overflow: hidden;
+    position: relative;
+    flex: 1 1 0%;
+}
+
+.tv-ticker-track {
+    display: inline-flex;
+    width: max-content;
+    white-space: nowrap;
+    animation: pst-marquee 34s linear infinite;
+}
+
+.tv-ticker-track:hover {
+    animation-play-state: paused;
+}
+
+/* Active TV call highlight */
+@keyframes tv-call-pulse {
+    0%, 100% {
+        border-color: #EF4444;
+        background-color: rgb(239 68 68 / 0.08);
+    }
+    50% {
+        border-color: #F59E0B;
+        background-color: rgb(245 158 11 / 0.1);
+    }
+}
+
+.tv-card-calling {
+    animation: tv-call-pulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .tv-ticker-track {
+        animation: none !important;
+        white-space: normal;
+        width: auto;
+    }
+
+    .tv-ticker-duplicate {
+        display: none !important;
+    }
+}
+
+/* Screen vs Print isolation for Kiosk 58mm / 80mm thermal receipts */
+@media screen {
+    .print-only {
+        display: none !important;
+    }
+}
+
+@media print {
+    body > *:not(#ticket-print-area) {
+        display: none !important;
+    }
+
+    #ticket-print-area {
+        display: block !important;
+        position: static !important;
+        width: 58mm;
+        max-width: 100%;
+        margin: 0;
+        padding: 3mm 2mm;
+        font-family: 'Courier New', Courier, monospace;
+        color: #000000 !important;
+        background: #FFFFFF !important;
+        font-size: 11px;
+        line-height: 1.35;
+    }
+
+    @page {
+        size: 58mm auto;
+        margin: 0;
+    }
 }
