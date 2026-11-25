@@ -43,8 +43,16 @@ class DisplayStreamTest extends TestCase
         $this->assertStringNotContainsString('🔊', $html);
         $this->assertStringNotContainsString('📊', $html);
         $this->assertStringNotContainsString('🕒', $html);
-        $this->assertStringContainsString('id="audio-debug-panel" class="hidden', $html);
+        $this->assertStringContainsString('bg-[#090E17]', $html);
+        $this->assertStringContainsString('bg-[#0D1420]', $html);
+        $this->assertStringContainsString('text-[#F59E0B]', $html);
+        $this->assertStringContainsString('<svg', $html);
+        $this->assertStringContainsString('<h1 class="visually-hidden">', $html);
+        $this->assertMatchesRegularExpression('/<div[^>]*\bid="audio-debug-panel"[^>]*\bclass="[^"]*\bhidden\b[^"]*"/', $html);
         $this->assertStringContainsString('resetAllCounterCards', $html);
         $this->assertStringContainsString('renderRecentCalls', $html);
+        $this->assertStringContainsString('seenVisualKeys', $html);
+        $this->assertStringContainsString('announcedCallKeys', $html);
+        $this->assertStringContainsString('highlightTimers', $html);
     }
 }

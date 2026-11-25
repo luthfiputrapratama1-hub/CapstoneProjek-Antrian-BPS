@@ -45,6 +45,7 @@
     </header>
 
     <main class="flex-1 max-w-[1700px] w-full mx-auto px-6 py-5 flex flex-col gap-5">
+        <h1 class="visually-hidden">Layar Monitor Antrean Ruang Tunggu PST BPS Kota Tasikmalaya</h1>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch flex-1">
             {{-- Left 2/3: Active Counter Cards + Service Waiting Strip --}}
             <div class="lg:col-span-2 flex flex-col justify-between gap-5">
@@ -278,16 +279,46 @@
 
         const audioQueue = [];
         let isPlayingAudio = false;
-        const processedCallKeys = [];
+        const seenVisualKeys = [];
+        const announcedCallKeys = [];
         const MAX_CALL_KEYS = 200;
+        const highlightTimers = new Map();
 
-        function rememberCallKey(key) {
-            if (processedCallKeys.includes(key)) return false;
-            processedCallKeys.push(key);
-            if (processedCallKeys.length > MAX_CALL_KEYS) {
-                processedCallKeys.shift();
+        function rememberKey(list, key) {
+            if (list.includes(key)) return false;
+            list.push(key);
+            if (list.length > MAX_CALL_KEYS) {
+                list.shift();
             }
             return true;
+        }
+
+        function clearCardHighlightTimer(counterNumber) {
+            const key = String(counterNumber);
+            const existingTimer = highlightTimers.get(key);
+            if (existingTimer) {
+                window.clearTimeout(existingTimer);
+                highlightTimers.delete(key);
+            }
+        }
+
+        function setCardCallingHighlight(card, counterNumber, durationMs = 7000) {
+            if (!card) return;
+            const key = String(counterNumber);
+            clearCardHighlightTimer(key);
+            card.classList.add('tv-card-calling');
+            if (durationMs > 0) {
+                const timerId = window.setTimeout(() => {
+                    card.classList.remove('tv-card-calling');
+                    highlightTimers.delete(key);
+                }, durationMs);
+                highlightTimers.set(key, timerId);
+            }
+        }
+
+        function formatTimeHHMM(date) {
+            const d = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
+            return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
         }
 
         async function processAudioQueue() {
@@ -333,6 +364,7 @@
                 if (ticketEl) ticketEl.textContent = '---';
                 if (serviceEl) serviceEl.textContent = 'Belum ada antrean';
                 setCounterBadge(badgeEl, 'idle');
+                clearCardHighlightTimer(counterNum);
                 card.classList.remove('tv-card-calling');
             });
         }
@@ -350,7 +382,12 @@
                 if (ticketEl) ticketEl.textContent = q.ticket_code || '---';
                 if (serviceEl) serviceEl.textContent = q.service?.name || 'Layanan PST';
                 setCounterBadge(badgeEl, q.status);
-                card?.classList.toggle('tv-card-calling', q.status === 'calling');
+                if (q.status === 'calling') {
+                    setCardCallingHighlight(card, counterNum, 0);
+                } else {
+                    clearCardHighlightTimer(counterNum);
+                    card?.classList.remove('tv-card-calling');
+                }
             });
         }
 
@@ -397,7 +434,7 @@
 
             const nodes = recentQueues.slice(0, 5).map((rq) => {
                 const dateObj = rq.updated_at ? new Date(rq.updated_at) : new Date();
-                const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                const timeStr = formatTimeHHMM(dateObj);
                 return createRecentCallRow(
                     rq.ticket_code || '---',
                     rq.service?.name || 'Layanan PST',
@@ -412,14 +449,17 @@
             const list = document.getElementById('recent-calls-list');
             if (!list) return;
             document.getElementById('empty-recent-notice')?.remove();
-            const timeNow = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            const timeNow = formatTimeHHMM(data.updated_at ? new Date(data.updated_at) : new Date());
             list.prepend(createRecentCallRow(data.ticket_code, data.service_name, data.counter_name, timeNow));
             while (list.children.length > 5) {
                 list.lastElementChild?.remove();
             }
         }
 
-        function enqueueCall(data, shouldAnnounce = true) {
+        function enqueueCall(data, shouldAnnounce = true, options = {}) {
+            const { skipRecentPrepend = false, isTest = false } = options;
+            const callKey = `${data.ticket_code}-${data.counter_number}-${data.updated_at || (isTest ? Date.now() : '')}`;
+
             const card = document.getElementById(`counter-card-${data.counter_number}`);
             const ticketEl = document.getElementById(`counter-ticket-${data.counter_number}`);
             const serviceEl = document.getElementById(`counter-service-${data.counter_number}`);
@@ -428,14 +468,14 @@
             if (ticketEl) ticketEl.textContent = data.ticket_code;
             if (serviceEl) serviceEl.textContent = data.service_name;
             setCounterBadge(badgeEl, 'calling');
-            if (card) {
-                card.classList.add('tv-card-calling');
-                window.setTimeout(() => card.classList.remove('tv-card-calling'), 7000);
-            }
-            prependRecentCall(data);
+            setCardCallingHighlight(card, data.counter_number, isTest ? 7000 : 0);
 
-            const callKey = `${data.ticket_code}-${data.counter_number}-${data.updated_at || Date.now()}`;
-            if (shouldAnnounce && isAudioUnlocked && rememberCallKey(callKey)) {
+            const isNewVisual = isTest || rememberKey(seenVisualKeys, callKey);
+            if (!skipRecentPrepend && isNewVisual) {
+                prependRecentCall(data);
+            }
+
+            if (shouldAnnounce && isAudioUnlocked && rememberKey(announcedCallKeys, callKey)) {
                 audioQueue.push({
                     prefix: data.code_prefix,
                     number: data.ticket_number,
@@ -486,9 +526,9 @@
 
                     if (json.data.latest_calling) {
                         const latest = json.data.latest_calling;
-                        const callKey = `${latest.ticket_code}-${latest.counter_number}-${latest.updated_at}`;
-                        if (!processedCallKeys.includes(callKey)) {
-                            enqueueCall(latest, true);
+                        const callKey = `${latest.ticket_code}-${latest.counter_number}-${latest.updated_at || ''}`;
+                        if (!announcedCallKeys.includes(callKey)) {
+                            enqueueCall(latest, true, { skipRecentPrepend: true });
                         }
                     }
                 } catch (e) {
@@ -551,7 +591,7 @@
         document.getElementById('btn-enable-audio')?.addEventListener('click', enableAudioEngine);
         debugToggleBtn?.addEventListener('click', toggleDebugPanel);
         document.addEventListener('keydown', (e) => {
-            if (e.altKey && e.key.toLowerCase() === 'd') {
+            if (e.altKey && e.code === 'KeyD') {
                 e.preventDefault();
                 toggleDebugPanel();
             }
@@ -570,7 +610,7 @@
                     counter_number: counterNum,
                     counter_name: `Loket ${counterNum}`,
                     service_name: 'Uji Coba Pengumuman Suara',
-                }, true);
+                }, true, { isTest: true });
             });
         });
 
