@@ -16,7 +16,7 @@
 - **Anti-AI-Slop Discipline:** Use `#F4F6F9` light canvas, `#FFFFFF` surfaces with `1px solid #DCE3EC` borders, controlled radius (`rounded-md` controls, `rounded-lg`/`rounded-xl` cards/dialogs, `rounded-2xl` max on Kiosk touch buttons), `tabular-nums` for digits/clocks/KPIs, no `rounded-3xl`/`shadow-2xl`/`animate-bounce`/`animate-ping`/`hover:-translate-y-1`. Display TV (`/display`) uses dark board `#090E17` with `#111827` cards and `#F59E0B` ticket ink.
 - **Native Accessibility:** Use native `<dialog>` (`showModal()`, `closedby="any"` + bounding-box pointer fallback, no redundant `role="dialog"`/`aria-modal`, scroll containment via `dialog:modal` and `dialog::backdrop`, `returnValue` reset on close), one `<nav>` tree with `aria-current="page"`, `<x-table-wrapper>` (`tabindex="0" role="region"`), and `@media (prefers-reduced-motion: reduce)`.
 - **Backend & Test Compatibility:** Do not alter database migrations, controllers, route names, or JSON API payloads. Preserve all Indonesian strings asserted by existing tests.
-- **Container Toolchain & AGENTS.md:** Run PHP/Composer/Node/npm/PHPUnit inside `distrobox enter my-distrobox -- <cmd>`. Check `AGENTS.md` prerequisite (`laravel/boost` installation check) before application code edits.
+- **Container Toolchain & Scope:** Run PHP/Composer/Node/npm/PHPUnit inside `distrobox enter my-distrobox -- <cmd>`. User explicitly waived `laravel/boost` installation so `composer.json`, `composer.lock`, `AGENTS.md`, and `CLAUDE.md` stay untouched.
 
 ---
 
@@ -33,13 +33,13 @@
 - Produces CSS design tokens & utility classes in `resources/css/app.css`: `.tabular-nums-strict`, `.print-only`, `.tv-ticker-track`, `.visually-hidden`, `.field-error`, native `dialog:modal` / `dialog::backdrop` scroll containment.
 - Produces global JS helpers in `resources/js/app.js` attached to `window.PstUi`: `openModal(id)`, `closeModal(id)`, `showToast(message, type = 'info')`, `showConfirm({ title, message, confirmLabel, cancelLabel, tone })` returning `Promise<boolean>`, `renderFormErrors(formEl, summaryEl, errors)`, `clearFormErrors(formEl, summaryEl)`.
 
-- [ ] **Step 1: Verify `AGENTS.md` prerequisite and install npm dependencies inside `my-distrobox`**
+- [ ] **Step 1: Install npm dependencies inside `my-distrobox` (laravel/boost waived by user)**
 
 Run:
 ```bash
-distrobox enter my-distrobox -- sh -c "composer show laravel/boost >/dev/null 2>&1 || (composer require laravel/boost --dev && php artisan boost:install --no-interaction) || true; npm install --ignore-scripts"
+distrobox enter my-distrobox -- npm install --ignore-scripts
 ```
-Expected: `node_modules/` created (Vite 8 + `@tailwindcss/vite` installed). Note in commit/log if `laravel/boost` was installed or if offline/unavailable.
+Expected: `node_modules/` created (Vite 8 + `@tailwindcss/vite` installed).
 
 - [ ] **Step 2: Write the failing test for Vite offline config, CSS tokens, JS module exports, and TestCase manifest guard**
 
@@ -90,6 +90,17 @@ class UiArchitectureTest extends TestCase
         $this->assertStringContainsString('showConfirm', $js);
         $this->assertStringContainsString('closedBy', $js);
         $this->assertStringContainsString('renderFormErrors', $js);
+    }
+
+    public function test_vite_build_manifest_exists_with_compiled_assets(): void
+    {
+        $manifestPath = public_path('build/manifest.json');
+        $this->assertFileExists($manifestPath);
+
+        $manifest = json_decode(file_get_contents($manifestPath), true);
+        $this->assertIsArray($manifest);
+        $this->assertArrayHasKey('resources/css/app.css', $manifest);
+        $this->assertArrayHasKey('resources/js/app.js', $manifest);
     }
 }
 ```
@@ -792,6 +803,7 @@ git commit -m "feat(ui): configure offline Vite Tailwind v4 tokens and shared JS
 - Create: `resources/views/components/modal.blade.php`
 - Create: `resources/views/components/confirm-dialog.blade.php`
 - Create: `resources/views/components/toast-region.blade.php`
+- Create: `resources/views/components/flash-alerts.blade.php`
 - Create: `resources/views/layouts/portal.blade.php`
 - Create: `resources/views/layouts/workspace.blade.php`
 - Create: `resources/views/layouts/screen.blade.php`
@@ -1078,6 +1090,31 @@ Create `resources/views/components/toast-region.blade.php`:
     <div id="pst-toast-announcer" aria-live="polite" class="visually-hidden"></div>
     <div id="pst-toast-stack" class="flex flex-col gap-2"></div>
 </div>
+```
+
+Create `resources/views/components/flash-alerts.blade.php`:
+
+```blade
+@if(session('success') || $errors->any())
+    <div {{ $attributes->merge(['class' => 'space-y-2']) }}>
+        @if(session('success'))
+            <div role="status" class="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-900">
+                <x-icon name="check" class="w-4 h-4 text-[#15803D]" />
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800">
+                <ul class="list-disc list-inside space-y-1">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+    </div>
+@endif
 ```
 
 - [ ] **Step 5: Create the 3 layouts (`layouts/portal`, `layouts/workspace`, `layouts/screen`) and custom pagination view (`vendor/pagination/tailwind`)**
@@ -1863,22 +1900,7 @@ Replace `resources/views/auth/change-password.blade.php`:
                 </div>
             </div>
 
-            @if(session('success'))
-                <div role="status" class="mt-5 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-900">
-                    <x-icon name="check" class="w-4 h-4 text-[#15803D]" />
-                    <span>{{ session('success') }}</span>
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div role="alert" class="mt-5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-xs text-red-800">
-                    <ul class="list-disc list-inside space-y-1">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+            <x-flash-alerts class="mt-5" />
 
             <form action="{{ route('password.update') }}" method="POST" class="mt-5 space-y-4">
                 @csrf
@@ -4645,22 +4667,7 @@ Replace `resources/views/admin/services/index.blade.php`:
 
 @section('content')
     <div class="space-y-6">
-        @if(session('success'))
-            <div role="status" class="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-900">
-                <x-icon name="check" class="w-4 h-4 text-[#15803D]" />
-                <span>{{ session('success') }}</span>
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+        <x-flash-alerts />
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -4720,7 +4727,7 @@ Replace `resources/views/admin/services/index.blade.php`:
                                     <div class="inline-flex items-center justify-center gap-2">
                                         <button type="button"
                                                 data-edit-service
-                                                data-payload='@json($editPayload)'
+                                                data-payload="{{ json_encode($editPayload) }}"
                                                 class="rounded-md border border-[#CBD5E1] bg-white hover:bg-[#EDF1F6] px-2.5 py-1 text-xs font-semibold text-[#0F172A]">
                                             Edit
                                         </button>
@@ -4843,22 +4850,7 @@ Replace `resources/views/admin/counters/index.blade.php`:
 
 @section('content')
     <div class="space-y-6">
-        @if(session('success'))
-            <div role="status" class="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-900">
-                <x-icon name="check" class="w-4 h-4 text-[#15803D]" />
-                <span>{{ session('success') }}</span>
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+        <x-flash-alerts />
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -4924,7 +4916,7 @@ Replace `resources/views/admin/counters/index.blade.php`:
                                     <div class="inline-flex items-center justify-center gap-2">
                                         <button type="button"
                                                 data-edit-counter
-                                                data-payload='@json($editPayload)'
+                                                data-payload="{{ json_encode($editPayload) }}"
                                                 class="rounded-md border border-[#CBD5E1] bg-white hover:bg-[#EDF1F6] px-2.5 py-1 text-xs font-semibold text-[#0F172A]">
                                             Edit Penugasan
                                         </button>
@@ -5051,22 +5043,7 @@ Replace `resources/views/admin/users/index.blade.php`:
 
 @section('content')
     <div class="space-y-6">
-        @if(session('success'))
-            <div role="status" class="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-900">
-                <x-icon name="check" class="w-4 h-4 text-[#15803D]" />
-                <span>{{ session('success') }}</span>
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+        <x-flash-alerts />
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -5126,7 +5103,7 @@ Replace `resources/views/admin/users/index.blade.php`:
                                     <div class="inline-flex items-center justify-center gap-2">
                                         <button type="button"
                                                 data-reset-user
-                                                data-payload='@json($resetPayload)'
+                                                data-payload="{{ json_encode($resetPayload) }}"
                                                 class="rounded-md border border-[#CBD5E1] bg-white hover:bg-[#EDF1F6] px-2.5 py-1 text-xs font-semibold text-[#0F172A]">
                                             Reset Password
                                         </button>
