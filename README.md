@@ -1,9 +1,9 @@
 # Sistem Informasi Antrean & Rekapitulasi Pengunjung PST BPS Kota Tasikmalaya
 
-[![Laravel](https://img.shields.io/badge/Laravel-11%20%2F%2012-FF2D20?style=flat&logo=laravel&logoColor=white)](https://laravel.com)
-[![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat&logo=php&logoColor=white)](https://www.php.net)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
-[![Tests](https://img.shields.io/badge/PHPUnit-42%20Passed-brightgreen?style=flat&logo=php)](file:///tests)
+[![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat&logo=laravel&logoColor=white)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.3+-777BB4?style=flat&logo=php&logoColor=white)](https://www.php.net)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS%20v4%20(Vite)-38B2AC?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![Tests](https://img.shields.io/badge/Tests-57%20PHPUnit%20%2B%207%20JS-brightgreen?style=flat&logo=php)](file:///tests)
 
 Sistem Informasi Antrean Berbasis Web dengan Kiosk Thermal Printing Layout, Realtime Display Sound Announcer (Server-Sent Events), Meja Kerja Pelayanan Terpadu Buku Tamu Digital (Kepatuhan UU PDP No. 27 Tahun 2022), serta Mini Dashboard Rekapitulasi Kunjungan untuk **Pelayanan Statistik Terpadu (PST) Badan Pusat Statistik (BPS) Kota Tasikmalaya**.
 
@@ -21,7 +21,7 @@ Sistem ini mereplikasi alur antrean modern perbankan yang disesuaikan dengan keb
 
 ## ⚙️ Aturan Bisnis & Logika Antrean (*Core Queue Rules*)
 
-1. **4 Pilar Layanan Resmi PST BPS**:
+1. **4 Kategori Layanan Resmi PST BPS**:
    - **A**: Konsultasi Statistik
    - **B**: Rekomendasi Kegiatan Statistik (Romantik)
    - **C**: Permintaan Data Mikro & Publikasi
@@ -49,23 +49,22 @@ Sistem ini mereplikasi alur antrean modern perbankan yang disesuaikan dengan keb
 ## 🚀 Fitur Unggulan Sistem
 
 ### 1. Portal Landing Page Terpadu (`/`)
-- Gerbang akses elegan dengan identitas instansi resmi BPS Kota Tasikmalaya.
+- Gerbang akses dengan identitas resmi BPS Kota Tasikmalaya (logo SVG resmi BPS).
 - Tautan cepat ke Anjungan Kiosk, Layar Display TV, Meja Loket, dan Dashboard Admin.
-- Edukasi publik mengenai 4 pilar layanan PST dan jaminan privasi UU No. 27 Tahun 2022 (UU PDP).
+- Ringkasan 4 layanan PST dan jaminan privasi UU No. 27 Tahun 2022 (UU PDP).
 
 ### 2. Anjungan Kiosk Mandiri Layar Sentuh (`/kiosk`)
-- Antarmuka ramah layar sentuh (*touch-friendly*) dengan tombol berukuran besar dan kontras tinggi.
-- Proteksi klik ganda (*double-click prevention*) dan status animasi *loading*.
+- Antarmuka ramah layar sentuh (*touch-friendly*) dengan tombol berukuran besar, kontras tinggi, dan header non-tautan agar pengunjung tidak keluar dari mode anjungan.
+- Proteksi klik ganda (*double-click prevention*) dan status *loading*.
 - Pratinjau tiket dengan hitung mundur reset otomatis (*auto-reset countdown*) 5 detik.
 - Siap cetak printer termal fisik (lebar 58 mm dan 80 mm) via mode *Silent Printing* Chromium.
 
 ### 3. Layar Display Monitor TV & Audio Announcer (`/display`)
-- Monitor visual ruang tunggu dengan jam digital realtime dan riwayat 5 panggilan terakhir.
+- Monitor visual ruang tunggu kontras tinggi (mode gelap) dengan jam digital realtime, kartu loket terpusat, dan riwayat 5 panggilan terakhir.
 - Ringkasan jumlah antrean menunggu per layanan A/B/C/D secara waktu nyata.
-- **Koneksi SSE Realtime dengan Fallback Polling Cerdas**: Indikator status 3 warna (Hijau: SSE Terhubung, Kuning: Menghubungkan Ulang, Biru: Mode Polling LAN).
-- **Penanganan Browser Autoplay**: Tombol interaktif **"AKTIFKAN SUARA TV"** untuk membuka kunci Web Audio API di pagi hari.
+- **Koneksi SSE Realtime dengan Fallback Polling Cerdas**: otomatis beralih ke mode polling LAN bila koneksi Server-Sent Events (SSE) terputus.
+- **Aktivasi Audio Otomatis & Panel Teknisi (`Alt+D`)**: Web Audio API terbuka pada interaksi pertama di halaman atau melalui drawer uji audio teknisi di pojok kanan bawah (`Alt+D`), tanpa memenuhi header TV ruang tunggu.
 - **Audio Queue FIFO**: Mencegah tabrakan pengumuman suara saat dua loket memanggil bersamaan.
-- Panel uji coba audio yang dapat disembunyikan (*collapsible debug panel*).
 
 ### 4. Meja Kerja Pelayanan Loket Terpadu (`/loket`)
 - Pilihan loket kerja yang fleksibel dengan ringkasan antrean menunggu per layanan loket tersebut.
@@ -95,7 +94,7 @@ Sistem ini mereplikasi alur antrean modern perbankan yang disesuaikan dengan keb
 ### 7. Keamanan & Kepatuhan
 - **Role Middleware**: Membatasi hak akses (`admin` untuk `/admin/*`, `petugas` untuk `/loket`). Petugas dilarang membuka panel admin (otomatis dialihkan ke halaman 403 kustom).
 - **Validasi Akun Nonaktif**: Akun yang dinonaktifkan (`is_active = false`) langsung ditolak saat mencoba login.
-- **Fitur Ganti Password Mandiri**: Tersedia di rute `/password/change`.
+- **Fitur Ganti Password Mandiri & Menu Akun**: Tersedia di `/password/change` dan dapat diakses langsung melalui popover akun di kanan atas navbar workspace (bersama tombol **Keluar**).
 - **Peringatan Kata Sandi Bawaan**: Dashboard admin menampilkan peringatan dinamis jika admin masih menggunakan kata sandi default.
 - **Halaman Error Informatif (Bahasa Indonesia)**: 403 (Akses Ditolak), 404 (Tidak Ditemukan), 419 (Sesi Berakhir), dan 500 (Kendala Server).
 
@@ -115,20 +114,24 @@ Sistem telah dilengkapi dua akun awal untuk keperluan pengujian dan operasional:
 ## 💻 Panduan Instalasi & Menjalankan di Komputer Lokal
 
 ### 1. Kebutuhan Sistem
-- **PHP 8.2 ke atas** (Pastikan ekstensi `pdo_sqlite`, `pdo_mysql`, `mbstring`, `fileinfo`, `openssl`, dan `curl` aktif).
+- **PHP 8.3 ke atas** (`^8.3` sesuai [composer.json](composer.json); pastikan ekstensi `pdo_sqlite`, `pdo_mysql`, `mbstring`, `fileinfo`, `openssl`, dan `curl` aktif).
 - **Composer 2.x**.
+- **Node.js & npm** (digunakan untuk mengompilasi aset CSS/JS lokal melalui Vite & Tailwind CSS v4 — seluruh halaman beroperasi **100% offline** tanpa CDN eksternal).
 - **Web Browser modern** (Google Chrome, Microsoft Edge, atau Mozilla Firefox).
 
 ### 2. Langkah Instalasi
 
+> **Opsi cepat:** Setelah masuk ke direktori proyek, Anda dapat menjalankan `composer run setup` (kecuali pembuatan file `database/database.sqlite` awal dan `--seed` data master) atau mengikuti langkah manual di bawah ini.
+
 ```bash
 # 1. Masuk ke direktori proyek
-cd CapstoneProject-master
+cd CapstoneProject
 
-# 2. Pasang dependensi PHP
+# 2. Pasang dependensi PHP & Node.js
 composer install
+npm install
 
-# 3. Salin berkas lingkungan .env
+# 3. Salin berkas lingkungan .env (default menggunakan driver SQLite)
 cp .env.example .env
 # Pada Windows PowerShell:
 # Copy-Item .env.example .env
@@ -143,7 +146,13 @@ touch database/database.sqlite
 
 # 6. Jalankan migrasi basis data & seeder data master
 php artisan migrate:fresh --seed
+
+# 7. Bangun aset frontend Vite + Tailwind CSS v4 ke public/build/
+# (Wajib dijalankan agar aplikasi tidak memunculkan error Vite manifest not found)
+npm run build
 ```
+
+> Untuk mode pengembangan aktif (*hot-reload* CSS/JS), jalankan `npm run dev` di terminal terpisah sambil menjalankan server Laravel di bawah.
 
 ### 3. Memuat Data Demo Kunjungan Fiktif Lintas Bulan (Rekomendasi Demo)
 Untuk mengisi dashboard dengan **ratusan data kunjungan realistis fiktif** lintas bulan (September, Oktober, November 2026) agar seluruh grafik dan komparasi MoM terisi penuh:
@@ -162,33 +171,16 @@ Buka peramban pada alamat: **`http://localhost:8000`**.
 
 ## 🧪 Menjalankan Rangkaian Pengujian Otomatis (*Automated Tests*)
 
-Seluruh logika antrean, nomor urut unik, keamanan role, proteksi konkurensi, validasi buku tamu, SSE, filter laporan, ekspor CSV, dan ekspor PDF diuji secara otomatis menggunakan PHPUnit:
+Seluruh logika antrean, nomor urut unik, keamanan role, proteksi konkurensi, validasi buku tamu, SSE, arsitektur UI offline, komponen Blade, filter laporan, ekspor CSV, dan ekspor PDF diuji secara otomatis menggunakan PHPUnit dan Node test runner:
 
 ```bash
 php artisan test
+node --test tests/js/app.test.mjs
 ```
 
-**Hasil Pengujian:**
-```
-PASS  Tests\Feature\AdminManagementTest (4 tests)
-PASS  Tests\Feature\ConcurrencyQueueTest (2 tests)
-PASS  Tests\Feature\CounterOperationsTest (3 tests)
-PASS  Tests\Feature\DashboardReportTest (4 tests)
-PASS  Tests\Feature\DatabaseSchemaTest (3 tests)
-PASS  Tests\Feature\DisplayPollTest (2 tests)
-PASS  Tests\Feature\DisplayStreamTest (1 test)
-PASS  Tests\Feature\ExampleTest (1 test)
-PASS  Tests\Feature\GuestBookValidationTest (4 tests)
-PASS  Tests\Feature\KioskTicketTest (2 tests)
-PASS  Tests\Feature\LandingAndErrorPagesTest (3 tests)
-PASS  Tests\Feature\QueueNumberingTest (2 tests)
-PASS  Tests\Feature\QueueRecallSkipTest (6 tests)
-PASS  Tests\Feature\RoleSecurityTest (4 tests)
-PASS  Tests\Feature\SseStreamTest (1 test)
-
-Tests:    42 passed (220 assertions)
-Duration: ~20-30 detik
-```
+**Ringkasan Cakupan Pengujian:**
+- **PHPUnit (`php artisan test`)**: `57 passed` (`394 assertions`) across 18 test files (`AdminManagementTest` 5, `ConcurrencyQueueTest` 3, `CounterOperationsTest` 3, `DashboardReportTest` 5, `DatabaseSchemaTest` 1, `DisplayPollTest` 1, `DisplayStreamTest` 3, `ExampleTest` 1, `GuestBookValidationTest` 2, `KioskTicketTest` 3, `LandingAndErrorPagesTest` 5, `QueueNumberingTest` 2, `QueueRecallSkipTest` 6, `RoleSecurityTest` 6, `SseStreamTest` 2, `UiArchitectureTest` 4, `UiComponentsTest` 4, `Unit/ExampleTest` 1).
+- **JavaScript UI Primitives (`node --test tests/js/app.test.mjs`)**: `7 passed` (pengujian dialog, nav drawer, popover akun, render error form, dan toast live announcer).
 
 ---
 
@@ -200,7 +192,7 @@ Untuk mensimulasikan alur pelayanan antrean secara utuh di satu komputer:
    - Sentuh layanan **"Konsultasi Statistik"**.
    - Tiket virtual `A-001` akan terbit dengan jumlah antrean di depan. Layar akan mereset kembali dalam 5 detik.
 2. **Tab 2 — Display TV Ruang Tunggu (`http://localhost:8000/display`)**:
-   - Klik tombol **"AKTIFKAN SUARA TV"** untuk membuka izin audio browser.
+   - Klik sekali di mana saja pada halaman (atau buka panel teknisi via `Alt+D` → **Uji Ding-Dong**) untuk membuka izin audio browser.
    - Amati antrean menunggu kategori A bertambah menjadi 1.
 3. **Tab 3 — Meja Petugas Loket (`http://localhost:8000/login`)**:
    - Masuk dengan akun `petugas1` / `petugas123`.
