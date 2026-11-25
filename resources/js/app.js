@@ -86,6 +86,7 @@ export function closeModal(id) {
 }
 
 const pendingToasts = [];
+let liveAnnounceTimer = null;
 
 function hasOpenModal() {
     return Boolean(document.querySelector('dialog[open]'));
@@ -104,9 +105,13 @@ function renderToast(message, type = 'info', durationMs = 5000) {
     const live = document.getElementById('pst-toast-announcer');
 
     if (live) {
+        if (liveAnnounceTimer) {
+            window.clearTimeout(liveAnnounceTimer);
+        }
         live.textContent = '';
-        window.setTimeout(() => {
+        liveAnnounceTimer = window.setTimeout(() => {
             live.textContent = message;
+            liveAnnounceTimer = null;
         }, 40);
     }
 
@@ -138,12 +143,6 @@ function renderToast(message, type = 'info', durationMs = 5000) {
         toast.remove();
     };
 
-    const startTimer = () => {
-        if (durationMs > 0) {
-            timerId = window.setTimeout(dismiss, durationMs);
-        }
-    };
-
     const pauseTimer = () => {
         if (timerId) {
             window.clearTimeout(timerId);
@@ -151,9 +150,20 @@ function renderToast(message, type = 'info', durationMs = 5000) {
         }
     };
 
+    const startTimer = () => {
+        pauseTimer();
+        if (durationMs > 0) {
+            timerId = window.setTimeout(dismiss, durationMs);
+        }
+    };
+
     closeBtn.addEventListener('click', dismiss);
     toast.addEventListener('mouseenter', pauseTimer);
-    toast.addEventListener('mouseleave', startTimer);
+    toast.addEventListener('mouseleave', () => {
+        if (!toast.contains(document.activeElement)) {
+            startTimer();
+        }
+    });
     toast.addEventListener('focusin', pauseTimer);
     toast.addEventListener('focusout', startTimer);
 
@@ -213,8 +223,8 @@ export function showConfirm({
 }
 
 export function initNavDrawer(root = document) {
-    const toggle = root.getElementById('workspace-nav-toggle');
-    const navList = root.getElementById('workspace-nav-list');
+    const toggle = root.querySelector('#workspace-nav-toggle');
+    const navList = root.querySelector('#workspace-nav-list');
     if (!toggle || !navList) return;
     if (toggle.dataset.pstNavBound === 'true') return;
     toggle.dataset.pstNavBound = 'true';
@@ -238,7 +248,8 @@ export function initNavDrawer(root = document) {
 
     if (navList.dataset.pstEscBound !== 'true') {
         navList.dataset.pstEscBound = 'true';
-        document.addEventListener('keydown', (e) => {
+        const doc = root.ownerDocument || root;
+        doc.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
                 closeDrawer();
                 toggle.focus();

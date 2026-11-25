@@ -53,5 +53,16 @@ class UiArchitectureTest extends TestCase
         $this->assertIsArray($manifest);
         $this->assertArrayHasKey('resources/css/app.css', $manifest);
         $this->assertArrayHasKey('resources/js/app.js', $manifest);
+
+        $cssFile = public_path('build/' . $manifest['resources/css/app.css']['file']);
+        $this->assertFileExists($cssFile);
+        $compiledCss = file_get_contents($cssFile);
+        $this->assertNotFalse($compiledCss);
+
+        $dialogPos = strpos($compiledCss, 'dialog.pst-dialog');
+        $maxWmdPos = strpos($compiledCss, '.max-w-md');
+        $this->assertNotFalse($dialogPos);
+        $this->assertNotFalse($maxWmdPos);
+        $this->assertLessThan($maxWmdPos, $dialogPos);
     }
 }

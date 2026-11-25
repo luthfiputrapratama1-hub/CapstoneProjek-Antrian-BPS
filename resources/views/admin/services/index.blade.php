@@ -168,7 +168,7 @@
                 document.getElementById('edit-service-prefix').value = data.code_prefix || '';
                 document.getElementById('edit-service-name').value = data.name || '';
                 document.getElementById('edit-service-desc').value = data.description || '';
-                document.getElementById('edit-service-order').value = data.order_priority || 1;
+                document.getElementById('edit-service-order').value = data.order_priority ?? 1;
                 document.getElementById('edit-service-active').checked = Boolean(data.is_active);
                 window.PstUi.openModal('edit-service-modal');
             });

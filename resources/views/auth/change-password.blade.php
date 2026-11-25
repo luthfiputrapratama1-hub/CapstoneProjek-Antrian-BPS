@@ -40,26 +40,46 @@
                     <label for="current_password" class="block text-xs font-semibold text-[#0F172A] mb-1.5">
                         Kata Sandi Saat Ini <span class="text-red-600" aria-hidden="true">*</span>
                     </label>
-                    <input type="password"
-                           id="current_password"
-                           name="current_password"
-                           autocomplete="current-password"
-                           required
-                           class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2.5 text-sm text-[#0F172A]">
+                    <div class="relative">
+                        <input type="password"
+                               id="current_password"
+                               name="current_password"
+                               autocomplete="current-password"
+                               required
+                               class="w-full rounded-md border border-[#CBD5E1] bg-white pl-3.5 pr-11 py-2.5 text-sm text-[#0F172A]">
+                        <button type="button"
+                                data-password-toggle="current_password"
+                                aria-pressed="false"
+                                aria-label="Tampilkan kata sandi"
+                                class="absolute inset-y-0 right-0 flex items-center px-3 text-[#64748B] hover:text-[#0F172A]">
+                            <span data-eye-show><x-icon name="eye" class="w-4 h-4" /></span>
+                            <span data-eye-hide class="hidden"><x-icon name="eye-off" class="w-4 h-4" /></span>
+                        </button>
+                    </div>
                 </div>
 
                 <div>
                     <label for="password" class="block text-xs font-semibold text-[#0F172A] mb-1.5">
                         Kata Sandi Baru <span class="text-red-600" aria-hidden="true">*</span>
                     </label>
-                    <input type="password"
-                           id="password"
-                           name="password"
-                           autocomplete="new-password"
-                           minlength="6"
-                           required
-                           aria-describedby="new-password-help"
-                           class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2.5 text-sm text-[#0F172A]">
+                    <div class="relative">
+                        <input type="password"
+                               id="password"
+                               name="password"
+                               autocomplete="new-password"
+                               minlength="6"
+                               required
+                               aria-describedby="new-password-help"
+                               class="w-full rounded-md border border-[#CBD5E1] bg-white pl-3.5 pr-11 py-2.5 text-sm text-[#0F172A]">
+                        <button type="button"
+                                data-password-toggle="password"
+                                aria-pressed="false"
+                                aria-label="Tampilkan kata sandi"
+                                class="absolute inset-y-0 right-0 flex items-center px-3 text-[#64748B] hover:text-[#0F172A]">
+                            <span data-eye-show><x-icon name="eye" class="w-4 h-4" /></span>
+                            <span data-eye-hide class="hidden"><x-icon name="eye-off" class="w-4 h-4" /></span>
+                        </button>
+                    </div>
                     <p id="new-password-help" class="mt-1 text-[11px] text-[#64748B]">Minimal 6 karakter.</p>
                 </div>
 
@@ -67,13 +87,23 @@
                     <label for="password_confirmation" class="block text-xs font-semibold text-[#0F172A] mb-1.5">
                         Konfirmasi Kata Sandi Baru <span class="text-red-600" aria-hidden="true">*</span>
                     </label>
-                    <input type="password"
-                           id="password_confirmation"
-                           name="password_confirmation"
-                           autocomplete="new-password"
-                           minlength="6"
-                           required
-                           class="w-full rounded-md border border-[#CBD5E1] bg-white px-3.5 py-2.5 text-sm text-[#0F172A]">
+                    <div class="relative">
+                        <input type="password"
+                               id="password_confirmation"
+                               name="password_confirmation"
+                               autocomplete="new-password"
+                               minlength="6"
+                               required
+                               class="w-full rounded-md border border-[#CBD5E1] bg-white pl-3.5 pr-11 py-2.5 text-sm text-[#0F172A]">
+                        <button type="button"
+                                data-password-toggle="password_confirmation"
+                                aria-pressed="false"
+                                aria-label="Tampilkan kata sandi"
+                                class="absolute inset-y-0 right-0 flex items-center px-3 text-[#64748B] hover:text-[#0F172A]">
+                            <span data-eye-show><x-icon name="eye" class="w-4 h-4" /></span>
+                            <span data-eye-hide class="hidden"><x-icon name="eye-off" class="w-4 h-4" /></span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="pt-2">

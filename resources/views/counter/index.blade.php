@@ -12,6 +12,7 @@
         $stepState = $isServing ? 2 : ($isCalling ? 1 : 0);
     @endphp
 
+    <h1 class="visually-hidden">Meja Kerja Pelayanan Loket Terpadu</h1>
     <div class="space-y-6">
         {{-- Counter Toolbar & 3-Step Workflow Indicator --}}
         <section class="bg-white rounded-xl border border-[#DCE3EC] p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -95,7 +96,7 @@
                     <div class="mt-6 space-y-2.5">
                         <button type="button"
                                 id="btn-call-next"
-                                {{ $activeQueue ? 'disabled' : '' }}
+                                {{ (!$selectedCounter || $activeQueue) ? 'disabled' : '' }}
                                 class="w-full inline-flex items-center justify-center gap-2 rounded-md bg-[#15803D] hover:bg-emerald-800 disabled:opacity-40 disabled:pointer-events-none px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition-colors">
                             <x-icon name="megaphone" class="w-4 h-4" />
                             <span>Panggil Berikutnya</span>
@@ -335,7 +336,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-        const selectedCounterId = {{ $selectedCounter?->id ?? 1 }};
+        const selectedCounterId = {{ $selectedCounter?->id ?? 'null' }};
         const queueIdInput = document.getElementById('form-queue-id');
         const guestbookForm = document.getElementById('form-guestbook');
         const errorSummary = document.getElementById('guestbook-error-summary');
@@ -366,6 +367,7 @@
 
         const btnCallNext = document.getElementById('btn-call-next');
         btnCallNext?.addEventListener('click', async () => {
+            if (!selectedCounterId) return;
             try {
                 const { res, json } = await postAction("{{ route('counter.callNext') }}", { counter_id: selectedCounterId }, btnCallNext);
                 if (res.ok && json.status === 'success') {

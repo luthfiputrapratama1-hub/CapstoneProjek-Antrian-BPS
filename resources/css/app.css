@@ -98,33 +98,35 @@
 }
 
 /* Native <dialog> scroll containment and backdrop styling */
-dialog.pst-dialog {
-    margin: auto;
-    padding: 0;
-    border: 1px solid var(--color-border-strong);
-    border-radius: 0.75rem;
-    background-color: var(--color-surface);
-    color: var(--color-ink);
-    max-width: min(32rem, calc(100dvw - 2rem));
-    width: 100%;
-    max-height: calc(100dvh - 2rem);
-    overflow-y: auto;
-    box-shadow: 0 20px 25px -5px rgb(15 23 42 / 0.12), 0 8px 10px -6px rgb(15 23 42 / 0.08);
-}
+@layer components {
+    dialog.pst-dialog {
+        margin: auto;
+        padding: 0;
+        border: 1px solid var(--color-border-strong);
+        border-radius: 0.75rem;
+        background-color: var(--color-surface);
+        color: var(--color-ink);
+        width: min(100%, calc(100dvw - 2rem));
+        max-width: 32rem;
+        max-height: calc(100dvh - 2rem);
+        overflow-y: auto;
+        box-shadow: 0 20px 25px -5px rgb(15 23 42 / 0.12), 0 8px 10px -6px rgb(15 23 42 / 0.08);
+    }
 
-dialog.pst-dialog[open] {
-    display: flex;
-    flex-direction: column;
-}
+    dialog.pst-dialog[open] {
+        display: flex;
+        flex-direction: column;
+    }
 
-dialog:modal {
-    overscroll-behavior: contain;
-}
+    dialog:modal {
+        overscroll-behavior: contain;
+    }
 
-dialog::backdrop {
-    overflow: hidden;
-    overscroll-behavior: contain;
-    background-color: rgb(15 23 42 / 0.55);
+    dialog::backdrop {
+        overflow: hidden;
+        overscroll-behavior: contain;
+        background-color: rgb(15 23 42 / 0.55);
+    }
 }
 
 /* Inline field error visibility */
@@ -214,6 +216,14 @@ dialog::backdrop {
 }
 
 @media print {
+    html,
+    body {
+        min-height: 0 !important;
+        height: auto !important;
+        display: block !important;
+        background: #FFFFFF !important;
+    }
+
     body > *:not(#ticket-print-area):not(:has(#ticket-print-area)) {
         display: none !important;
     }

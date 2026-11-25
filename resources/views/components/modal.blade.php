@@ -13,7 +13,7 @@
         {{ $attributes->merge(['class' => "pst-dialog {$maxWidth}"]) }}>
     <div class="flex items-start justify-between gap-4 border-b border-[#DCE3EC] px-6 py-4">
         <div>
-            <h1 id="{{ $id }}-title" class="text-base font-bold text-[#0F172A]">{{ $title }}</h1>
+            <h2 id="{{ $id }}-title" class="text-base font-bold text-[#0F172A]">{{ $title }}</h2>
             @if($subtitle)
                 <p class="mt-0.5 text-xs text-[#475569]">{{ $subtitle }}</p>
             @endif

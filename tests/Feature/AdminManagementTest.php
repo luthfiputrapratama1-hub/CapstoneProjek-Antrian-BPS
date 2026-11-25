@@ -72,7 +72,10 @@ class AdminManagementTest extends TestCase
         $srvB = Service::where('code_prefix', 'B')->first();
 
         // 1. Index loket
-        $this->get('/admin/counters')->assertStatus(200)->assertSee('Loket 1');
+        $countersRes = $this->get('/admin/counters')->assertStatus(200)->assertSee('Loket 1');
+        $countersHtml = $countersRes->getContent();
+        $this->assertStringContainsString('Edit Meja Loket &amp; Penugasan', $countersHtml);
+        $this->assertStringNotContainsString('&amp;amp;', $countersHtml);
 
         // 2. Tambah loket baru dengan penugasan layanan A dan B
         $storeRes = $this->post('/admin/counters', [

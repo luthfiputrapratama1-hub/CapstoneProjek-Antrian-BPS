@@ -127,7 +127,7 @@
         </form>
     </x-modal>
 
-    <x-modal id="edit-counter-modal" title="Edit Meja Loket &amp; Penugasan" max-width="max-w-md">
+    <x-modal id="edit-counter-modal" title="Edit Meja Loket & Penugasan" max-width="max-w-md">
         <form id="edit-counter-form" method="POST" class="space-y-4">
             @csrf
             @method('PUT')
@@ -174,7 +174,7 @@
                 const data = JSON.parse(btn.dataset.payload || '{}');
                 document.getElementById('edit-counter-form').action = data.action || '';
                 document.getElementById('edit-counter-name').value = data.name || '';
-                document.getElementById('edit-counter-number').value = data.counter_number || 1;
+                document.getElementById('edit-counter-number').value = data.counter_number ?? 1;
                 document.getElementById('edit-counter-active').checked = Boolean(data.is_active);
                 const ids = Array.isArray(data.service_ids) ? data.service_ids.map(Number) : [];
                 document.querySelectorAll('.edit-counter-service-cb').forEach((cb) => {

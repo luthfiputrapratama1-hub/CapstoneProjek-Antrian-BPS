@@ -96,7 +96,7 @@
             <div class="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 text-[#15803D] flex items-center justify-center mx-auto mb-3">
                 <x-icon name="check" class="w-6 h-6" />
             </div>
-            <h1 id="ticket-modal-title" class="text-xl font-bold text-[#0F172A]">Tiket Diterbitkan</h1>
+            <h2 id="ticket-modal-title" class="text-xl font-bold text-[#0F172A]">Tiket Diterbitkan</h2>
             <p class="text-xs text-[#475569] mt-1">Silakan ambil struk tiket dan tunggu panggilan pada layar ruang tunggu.</p>
 
             <div class="my-5 rounded-lg border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-4 text-left font-mono text-xs text-[#334155]">
@@ -143,7 +143,7 @@
             <div class="w-12 h-12 rounded-full bg-red-50 border border-red-200 text-red-700 flex items-center justify-center mx-auto mb-3">
                 <x-icon name="warning" class="w-6 h-6" />
             </div>
-            <h1 id="error-modal-title" class="text-lg font-bold text-[#0F172A]">Gagal Memproses Tiket</h1>
+            <h2 id="error-modal-title" class="text-lg font-bold text-[#0F172A]">Gagal Memproses Tiket</h2>
             <p id="error-modal-message" class="text-xs text-[#475569] my-3 leading-relaxed">
                 Gagal memproses tiket antrean. Silakan coba kembali atau hubungi petugas.
             </p>
@@ -189,10 +189,17 @@
         let isSubmitting = false;
         let countdownInterval = null;
 
+        function formatTimeHHMMSS(date) {
+            const d = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
+            return [d.getHours(), d.getMinutes(), d.getSeconds()]
+                .map((n) => String(n).padStart(2, '0'))
+                .join(':');
+        }
+
         function updateClock() {
             const now = new Date();
             if (clockEl) {
-                clockEl.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                clockEl.textContent = formatTimeHHMMSS(now);
             }
             if (dateEl) {
                 dateEl.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -224,8 +231,8 @@
         ticketDialog?.addEventListener('close', resetKioskState);
         errorDialog?.addEventListener('close', resetKioskState);
 
-        document.getElementById('btn-close-ticket-modal')?.addEventListener('click', () => ticketDialog?.close(''));
-        document.getElementById('btn-close-error-modal')?.addEventListener('click', () => errorDialog?.close(''));
+        document.getElementById('btn-close-ticket-modal')?.addEventListener('click', () => window.PstUi.closeModal('ticket-modal'));
+        document.getElementById('btn-close-error-modal')?.addEventListener('click', () => window.PstUi.closeModal('error-modal'));
 
         function startCountdown() {
             window.clearInterval(countdownInterval);
@@ -242,7 +249,7 @@
                 if (progressEl) progressEl.style.width = `${Math.max(0, (remaining / 5) * 100)}%`;
                 if (remaining <= 0) {
                     window.clearInterval(countdownInterval);
-                    if (ticketDialog?.open) ticketDialog.close('');
+                    window.PstUi.closeModal('ticket-modal');
                 }
             }, 1000);
         }
@@ -278,7 +285,7 @@
                     document.getElementById('print-ticket-time').textContent = ticket.created_at;
                     document.getElementById('print-ticket-ahead').textContent = `${ticket.waiting_ahead} Orang`;
 
-                    ticketDialog?.showModal();
+                    window.PstUi.openModal('ticket-modal');
                     if (!ticket.mock_print) {
                         try {
                             window.print();
@@ -290,14 +297,14 @@
                 } else {
                     document.getElementById('error-modal-message').textContent =
                         result.message || 'Gagal menerbitkan nomor antrean. Silakan coba kembali.';
-                    errorDialog?.showModal();
+                    window.PstUi.openModal('error-modal');
                 }
             } catch (err) {
                 console.error(err);
                 setLoadingVisible(false);
                 document.getElementById('error-modal-message').textContent =
                     'Terjadi kendala jaringan saat berkomunikasi dengan peladen sistem antrean.';
-                errorDialog?.showModal();
+                window.PstUi.openModal('error-modal');
             }
         }
 

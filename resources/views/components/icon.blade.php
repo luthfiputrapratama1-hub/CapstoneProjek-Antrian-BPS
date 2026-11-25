@@ -25,6 +25,8 @@
         'menu' => '<path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />',
         'arrow-right' => '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0-5.25-5.25M19.5 12l-5.25 5.25" />',
         'arrow-left' => '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15m0 0 5.25-5.25M4.5 12l5.25 5.25" />',
+        'arrow-up' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 19.5v-15m0 0-5.25 5.25M12 4.5l5.25 5.25" />',
+        'arrow-down' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m0 0 5.25-5.25M12 19.5l-5.25-5.25" />',
         'refresh' => '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3L19.5 8.75M19.5 4.5v4.25h-4.25" />',
         'users' => '<path stroke-linecap="round" stroke-linejoin="round" d="M16 19.25v-1.5a3.75 3.75 0 0 0-3.75-3.75h-4.5A3.75 3.75 0 0 0 4 17.75v1.5M10 10.5a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5ZM20 19.25v-1.25a3.25 3.25 0 0 0-2.5-3.16M15.75 4.2a3.25 3.25 0 0 1 0 6.1" />',
         'eye' => '<path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12s3.5-6.25 9.5-6.25S21.5 12 21.5 12s-3.5 6.25-9.5 6.25S2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="2.75" />',
@@ -33,10 +35,11 @@
         'megaphone' => '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5h3.75l8.25-4.5v12l-8.25-4.5H4.5v-3ZM8.25 13.5l1.5 5.25" />',
     ];
     $svgBody = $paths[$name] ?? '<circle cx="12" cy="12" r="8" />';
+    $hasSizeClass = (bool) preg_match('/\b(?:w|h|size)-/', (string) $attributes->get('class'));
 @endphp
 
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
      @if($decorative) aria-hidden="true" @endif
-     {{ $attributes->merge(['class' => 'w-5 h-5 shrink-0']) }}>
+     {{ $attributes->class(['shrink-0', 'w-5 h-5' => !$hasSizeClass]) }}>
     {!! $svgBody !!}
 </svg>

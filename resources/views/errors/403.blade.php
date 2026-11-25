@@ -14,7 +14,7 @@
             <p class="font-mono text-4xl font-bold text-[#0F172A] tabular-nums-strict">403</p>
             <h1 class="text-lg font-bold text-[#0F172A] mt-2">Akses Ditolak</h1>
             <p class="text-xs text-[#475569] mt-2 leading-relaxed">
-                {{ $exception->getMessage() ?: 'Mohon maaf, Anda tidak memiliki hak akses atau wewenang untuk membuka halaman ini.' }}
+                {{ isset($exception) && $exception->getMessage() ? $exception->getMessage() : 'Mohon maaf, Anda tidak memiliki hak akses atau wewenang untuk membuka halaman ini.' }}
             </p>
 
             <div class="mt-6 pt-5 border-t border-[#EDF1F6] flex flex-col gap-2.5">

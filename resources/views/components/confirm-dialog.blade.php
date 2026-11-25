@@ -3,7 +3,7 @@
         aria-labelledby="pst-confirm-title"
         class="pst-dialog max-w-md">
     <div class="border-b border-[#DCE3EC] px-6 py-4">
-        <h1 id="pst-confirm-title" data-confirm-title class="text-base font-bold text-[#0F172A]">Konfirmasi Tindakan</h1>
+        <h2 id="pst-confirm-title" data-confirm-title class="text-base font-bold text-[#0F172A]">Konfirmasi Tindakan</h2>
     </div>
     <form method="dialog" class="px-6 py-5 space-y-5">
         <p data-confirm-message class="text-sm leading-relaxed text-[#475569]">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>

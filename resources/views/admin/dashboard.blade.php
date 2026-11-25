@@ -82,7 +82,8 @@
                 <div class="mt-4 pt-3 border-t border-[#EDF1F6] flex items-center justify-between text-xs tabular-nums-strict">
                     <span class="text-[#475569]">Bulan lalu: <strong class="text-[#0F172A]">{{ $prevMonthTotal }}</strong></span>
                     <x-badge :tone="$diffTotal >= 0 ? 'green' : 'danger'">
-                        {{ $diffTotal >= 0 ? 'Naik +' : 'Turun ' }}{{ $growthRate }}%
+                        <x-icon :name="$diffTotal >= 0 ? 'arrow-up' : 'arrow-down'" class="w-3 h-3" />
+                        <span>{{ $diffTotal >= 0 ? 'Naik +' : 'Turun ' }}{{ $growthRate }}%</span>
                     </x-badge>
                 </div>
             </div>
@@ -259,10 +260,10 @@
             new Chart(ctxTrend, {
                 type: 'line',
                 data: {
-                    labels: {!! json_encode($trendLabels) !!},
+                    labels: {{ Js::from($trendLabels) }},
                     datasets: [{
                         label: 'Jumlah Kunjungan',
-                        data: {!! json_encode($trendData) !!},
+                        data: {{ Js::from($trendData) }},
                         borderColor: '#0B4F9C',
                         backgroundColor: 'rgba(11, 79, 156, 0.08)',
                         borderWidth: 2,
@@ -289,10 +290,10 @@
             new Chart(ctxBusy, {
                 type: 'bar',
                 data: {
-                    labels: {!! json_encode($busyHourLabels) !!},
+                    labels: {{ Js::from($busyHourLabels) }},
                     datasets: [{
                         label: 'Pemohon',
-                        data: {!! json_encode($busyHourData) !!},
+                        data: {{ Js::from($busyHourData) }},
                         backgroundColor: '#C2410C',
                         borderRadius: 4,
                     }],
@@ -314,9 +315,9 @@
             new Chart(ctxService, {
                 type: 'doughnut',
                 data: {
-                    labels: {!! json_encode($serviceChartLabels) !!},
+                    labels: {{ Js::from($serviceChartLabels) }},
                     datasets: [{
-                        data: {!! json_encode($serviceChartData) !!},
+                        data: {{ Js::from($serviceChartData) }},
                         backgroundColor: ['#0B4F9C', '#15803D', '#C2410C', '#0F766E'],
                         borderColor: '#FFFFFF',
                         borderWidth: 2,
@@ -337,10 +338,10 @@
             new Chart(ctxInst, {
                 type: 'bar',
                 data: {
-                    labels: {!! json_encode($institutionChartLabels) !!},
+                    labels: {{ Js::from($institutionChartLabels) }},
                     datasets: [{
                         label: 'Pemohon',
-                        data: {!! json_encode($institutionChartData) !!},
+                        data: {{ Js::from($institutionChartData) }},
                         backgroundColor: ['#0B4F9C', '#15803D', '#C2410C', '#0F766E', '#475569'],
                         borderRadius: 4,
                     }],

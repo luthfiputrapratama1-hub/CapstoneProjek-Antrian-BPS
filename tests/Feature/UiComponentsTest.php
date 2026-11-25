@@ -7,6 +7,7 @@ use Database\Seeders\PstBpsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\MessageBag;
 use Illuminate\Support\ViewErrorBag;
 use Tests\TestCase;
 
@@ -30,9 +31,16 @@ class UiComponentsTest extends TestCase
         $this->assertStringContainsString('<svg', $iconHtml);
         $this->assertStringContainsString('aria-hidden="true"', $iconHtml);
 
+        $sizedIconHtml = Blade::render('<x-icon name="close" class="w-4 h-4" />');
+        $this->assertStringContainsString('w-4 h-4', $sizedIconHtml);
+        $this->assertStringNotContainsString('w-5', $sizedIconHtml);
+        $this->assertStringNotContainsString('h-5', $sizedIconHtml);
+
         $modalHtml = Blade::render('<x-modal id="test-modal" title="Judul Modal"><p>Isi</p></x-modal>');
         $this->assertStringContainsString('<dialog', $modalHtml);
         $this->assertStringContainsString('closedby="any"', $modalHtml);
+        $this->assertStringContainsString('<h2 id="test-modal-title"', $modalHtml);
+        $this->assertStringNotContainsString('<h1', $modalHtml);
         $this->assertStringNotContainsString('role="dialog"', $modalHtml);
         $this->assertStringNotContainsString('aria-modal', $modalHtml);
     }
@@ -60,6 +68,16 @@ class UiComponentsTest extends TestCase
         view()->share('errors', new ViewErrorBag());
         $emptyFlashHtml = Blade::render('<x-flash-alerts />');
         $this->assertSame('', trim($emptyFlashHtml));
+
+        session()->flash('success', 'Perubahan berhasil disimpan.');
+        $errorBag = new ViewErrorBag();
+        $errorBag->put('default', new MessageBag(['Kolom wajib diisi.']));
+        view()->share('errors', $errorBag);
+        $populatedFlashHtml = Blade::render('<x-flash-alerts />');
+        $this->assertStringContainsString('Perubahan berhasil disimpan.', $populatedFlashHtml);
+        $this->assertStringContainsString('Kolom wajib diisi.', $populatedFlashHtml);
+        $this->assertStringContainsString('role="status"', $populatedFlashHtml);
+        $this->assertStringContainsString('role="alert"', $populatedFlashHtml);
     }
 
     public function test_workspace_layout_renders_single_nav_with_aria_current_and_password_link(): void
@@ -77,6 +95,18 @@ class UiComponentsTest extends TestCase
         $this->assertStringContainsString(route('password.change'), $html);
         $this->assertStringContainsString('id="pst-toast-stack"', $html);
         $this->assertStringContainsString('id="pst-confirm-dialog"', $html);
+
+        $petugas = User::where('role', 'petugas')->first();
+        $this->actingAs($petugas);
+
+        $petugasHtml = view('layouts.workspace', [
+            'activeNav' => 'loket',
+            'pageTitle' => 'Meja Kerja Pelayanan Loket',
+            'pageSubtitle' => 'PST BPS Kota Tasikmalaya',
+        ])->render();
+
+        $this->assertStringNotContainsString(route('admin.dashboard'), $petugasHtml);
+        $this->assertStringContainsString(route('counter.index'), $petugasHtml);
     }
 
     public function test_portal_and_screen_layouts_and_pagination_render_cleanly(): void

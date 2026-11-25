@@ -106,10 +106,30 @@ class FakeElement {
 
     removeAttribute(name) {
         this._attrs.delete(name);
+        if (name.startsWith('data-')) {
+            const camel = name.slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+            delete this.dataset[camel];
+        }
     }
 
     hasAttribute(name) {
         return this._attrs.has(name);
+    }
+
+    contains(node) {
+        let cur = node;
+        while (cur) {
+            if (cur === this) return true;
+            cur = cur.parentNode;
+        }
+        return false;
+    }
+
+    remove() {
+        if (this.parentNode) {
+            this.parentNode.children = this.parentNode.children.filter((c) => c !== this);
+            this.parentNode = null;
+        }
     }
 
     addEventListener(type, fn) {
@@ -473,4 +493,65 @@ test('renderFormErrors and clearFormErrors sync aria-invalid, aria-describedby, 
     assert.equal(noteInput.getAttribute('aria-invalid'), 'false');
     assert.equal(summaryEl.classList.contains('hidden'), true);
     assert.equal(errorList.children.length, 0);
+});
+
+test('initNavDrawer works on a non-Document element root and FakeElement.removeAttribute syncs dataset', () => {
+    const doc = setupFakeDom();
+    const header = new FakeElement('header', { id: 'workspace-header' });
+    const toggle = new FakeElement('button', {
+        id: 'workspace-nav-toggle',
+        attrs: { 'aria-expanded': 'false', 'data-temp-flag': '1' },
+    });
+    const navList = new FakeElement('ul', {
+        id: 'workspace-nav-list',
+        classes: ['hidden'],
+    });
+
+    toggle.ownerDocument = doc;
+    navList.ownerDocument = doc;
+    header.append(toggle, navList);
+    doc.register(header);
+
+    assert.equal(toggle.dataset.tempFlag, '1');
+    toggle.removeAttribute('data-temp-flag');
+    assert.equal('tempFlag' in toggle.dataset, false);
+
+    app.initNavDrawer(header);
+
+    toggle.dispatchEvent({ type: 'click' });
+    assert.equal(toggle.getAttribute('aria-expanded'), 'true');
+    assert.equal(navList.classList.contains('hidden'), false);
+
+    doc.dispatchEvent({ type: 'keydown', key: 'Escape' });
+    assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+    assert.equal(navList.classList.contains('hidden'), true);
+    assert.equal(toggle.focusCount, 1);
+});
+
+test('showToast debounces burst live announcements and keeps focused toast open on mouseleave', async () => {
+    const doc = setupFakeDom();
+    const stack = new FakeElement('div', { id: 'pst-toast-stack' });
+    const announcer = new FakeElement('div', { id: 'pst-toast-announcer' });
+    doc.register(stack);
+    doc.register(announcer);
+
+    app.showToast('Pesan pertama', 'info', 40);
+    const toast = app.showToast('Pesan kedua', 'success', 40);
+    assert.ok(toast);
+    assert.equal(stack.children.length, 2);
+
+    const closeBtn = toast.children[1];
+    doc.activeElement = closeBtn;
+    toast.dispatchEvent({ type: 'focusin', target: closeBtn });
+    toast.dispatchEvent({ type: 'mouseleave', target: toast });
+
+    await new Promise((resolve) => setTimeout(resolve, 70));
+    assert.equal(announcer.textContent, 'Pesan kedua');
+    assert.equal(stack.children.includes(toast), true);
+
+    doc.activeElement = null;
+    toast.dispatchEvent({ type: 'focusout', target: closeBtn });
+
+    await new Promise((resolve) => setTimeout(resolve, 70));
+    assert.equal(stack.children.includes(toast), false);
 });

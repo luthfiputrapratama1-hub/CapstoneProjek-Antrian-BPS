@@ -189,9 +189,16 @@
         const debugPanel = document.getElementById('audio-debug-panel');
         const debugToggleBtn = document.getElementById('btn-toggle-debug');
 
+        function formatTimeHHMMSS(date) {
+            const d = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
+            return [d.getHours(), d.getMinutes(), d.getSeconds()]
+                .map((n) => String(n).padStart(2, '0'))
+                .join(':');
+        }
+
         function updateDisplayClock() {
             const now = new Date();
-            if (clockEl) clockEl.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            if (clockEl) clockEl.textContent = formatTimeHHMMSS(now);
             if (dateEl) dateEl.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
         updateDisplayClock();
@@ -450,7 +457,12 @@
             if (!list) return;
             document.getElementById('empty-recent-notice')?.remove();
             const timeNow = formatTimeHHMM(data.updated_at ? new Date(data.updated_at) : new Date());
-            list.prepend(createRecentCallRow(data.ticket_code, data.service_name, data.counter_name, timeNow));
+            list.prepend(createRecentCallRow(
+                data.ticket_code || '---',
+                data.service_name || 'Layanan PST',
+                data.counter_name || 'Loket',
+                timeNow
+            ));
             while (list.children.length > 5) {
                 list.lastElementChild?.remove();
             }
@@ -458,15 +470,18 @@
 
         function enqueueCall(data, shouldAnnounce = true, options = {}) {
             const { skipRecentPrepend = false, isTest = false } = options;
-            const callKey = `${data.ticket_code}-${data.counter_number}-${data.updated_at || (isTest ? Date.now() : '')}`;
+            const ticketCode = data.ticket_code || '---';
+            const serviceName = data.service_name || 'Layanan PST';
+            const counterName = data.counter_name || 'Loket';
+            const callKey = `${ticketCode}-${data.counter_number}-${data.updated_at || (isTest ? Date.now() : '')}`;
 
             const card = document.getElementById(`counter-card-${data.counter_number}`);
             const ticketEl = document.getElementById(`counter-ticket-${data.counter_number}`);
             const serviceEl = document.getElementById(`counter-service-${data.counter_number}`);
             const badgeEl = document.getElementById(`counter-badge-${data.counter_number}`);
 
-            if (ticketEl) ticketEl.textContent = data.ticket_code;
-            if (serviceEl) serviceEl.textContent = data.service_name;
+            if (ticketEl) ticketEl.textContent = ticketCode;
+            if (serviceEl) serviceEl.textContent = serviceName;
             setCounterBadge(badgeEl, 'calling');
             setCardCallingHighlight(card, data.counter_number, isTest ? 7000 : 0);
 
@@ -479,7 +494,7 @@
                 audioQueue.push({
                     prefix: data.code_prefix,
                     number: data.ticket_number,
-                    counterName: data.counter_name,
+                    counterName,
                 });
                 processAudioQueue();
             }
