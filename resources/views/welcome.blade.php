@@ -39,7 +39,7 @@
         {{-- Institutional Hero --}}
         <section class="bg-white border border-[#DCE3EC] rounded-xl p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div class="max-w-2xl space-y-2.5">
-                <x-badge tone="cobalt">Portal Sistem Antrean Terpadu</x-badge>
+                <p class="text-xs font-semibold uppercase tracking-wider text-[#0B4F9C]">Portal Sistem Antrean Terpadu</p>
                 <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">
                     Selamat Datang di Pelayanan Statistik Terpadu (PST)
                 </h1>
@@ -69,7 +69,10 @@
                     <h2 id="zone-public-heading" class="text-base font-bold text-[#0F172A]">Layanan Publik &amp; Ruang Tunggu</h2>
                     <p class="text-xs text-[#475569]">Perangkat akses terbuka untuk pengunjung dan monitor ruang tunggu PST</p>
                 </div>
-                <x-badge tone="green">Akses Publik</x-badge>
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#15803D]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#15803D]" aria-hidden="true"></span>
+                    <span>Akses Publik</span>
+                </span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -126,7 +129,7 @@
                     <h2 id="zone-staff-heading" class="text-base font-bold text-[#0F172A]">Operasional Staf &amp; Pimpinan</h2>
                     <p class="text-xs text-[#475569]">Area kerja internal terotentikasi untuk petugas loket dan administrator PST</p>
                 </div>
-                <x-badge tone="neutral">Perlu Masuk</x-badge>
+                <span class="text-xs font-medium text-[#64748B]">Perlu Masuk</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -178,7 +181,7 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="rounded-lg border border-[#DCE3EC] border-t-2 border-t-[#0B4F9C] bg-[#F8FAFC] p-4 space-y-2">
+                <div class="rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] p-4 space-y-2">
                     <div class="flex items-center gap-2.5">
                         <span class="w-7 h-7 rounded-md bg-[#0B4F9C] text-white font-mono font-bold text-xs flex items-center justify-center">A</span>
                         <h3 class="text-sm font-bold text-[#0F172A]">Konsultasi Statistik</h3>
@@ -188,7 +191,7 @@
                     </p>
                 </div>
 
-                <div class="rounded-lg border border-[#DCE3EC] border-t-2 border-t-[#15803D] bg-[#F8FAFC] p-4 space-y-2">
+                <div class="rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] p-4 space-y-2">
                     <div class="flex items-center gap-2.5">
                         <span class="w-7 h-7 rounded-md bg-[#15803D] text-white font-mono font-bold text-xs flex items-center justify-center">B</span>
                         <h3 class="text-sm font-bold text-[#0F172A]">Rekomendasi Statistik</h3>
@@ -198,7 +201,7 @@
                     </p>
                 </div>
 
-                <div class="rounded-lg border border-[#DCE3EC] border-t-2 border-t-[#C2410C] bg-[#F8FAFC] p-4 space-y-2">
+                <div class="rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] p-4 space-y-2">
                     <div class="flex items-center gap-2.5">
                         <span class="w-7 h-7 rounded-md bg-[#C2410C] text-white font-mono font-bold text-xs flex items-center justify-center">C</span>
                         <h3 class="text-sm font-bold text-[#0F172A]">Data Mikro &amp; Publikasi</h3>
@@ -208,7 +211,7 @@
                     </p>
                 </div>
 
-                <div class="rounded-lg border border-[#DCE3EC] border-t-2 border-t-[#0F766E] bg-[#F8FAFC] p-4 space-y-2">
+                <div class="rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] p-4 space-y-2">
                     <div class="flex items-center gap-2.5">
                         <span class="w-7 h-7 rounded-md bg-[#0F766E] text-white font-mono font-bold text-xs flex items-center justify-center">D</span>
                         <h3 class="text-sm font-bold text-[#0F172A]">Perpustakaan Statistik</h3>

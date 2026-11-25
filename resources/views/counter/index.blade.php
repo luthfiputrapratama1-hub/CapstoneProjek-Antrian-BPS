@@ -26,7 +26,10 @@
                         </option>
                     @endforeach
                 </select>
-                <x-badge tone="cobalt" class="tabular-nums-strict">{{ $waitingCount }} Menunggu</x-badge>
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0B4F9C] tabular-nums-strict">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#0B4F9C]" aria-hidden="true"></span>
+                    <span>{{ $waitingCount }} Menunggu</span>
+                </span>
             </form>
 
             <nav aria-label="Tahapan Layanan Loket">
@@ -55,16 +58,18 @@
                         <h2 class="text-xs font-semibold uppercase tracking-wider text-[#475569]">Kategori Layanan Loket</h2>
                         <span class="text-xs font-semibold text-[#0F172A]">{{ $selectedCounter?->name }}</span>
                     </div>
-                    <div class="flex flex-wrap gap-1.5">
-                        @forelse($selectedCounter?->services ?? [] as $srv)
-                            <x-badge tone="neutral">
-                                <span class="font-mono font-bold text-[#0B4F9C]">{{ $srv->code_prefix }}</span>
-                                <span>{{ $srv->name }}</span>
-                            </x-badge>
-                        @empty
-                            <span class="text-xs text-red-700">Loket belum memiliki penugasan layanan.</span>
-                        @endforelse
-                    </div>
+                    @if(($selectedCounter?->services ?? collect())->isNotEmpty())
+                        <ul class="space-y-1.5 text-xs text-[#334155]">
+                            @foreach($selectedCounter->services as $srv)
+                                <li class="flex items-center gap-2">
+                                    <span class="font-mono font-bold text-[#0B4F9C] w-4 shrink-0">{{ $srv->code_prefix }}</span>
+                                    <span>{{ $srv->name }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <span class="text-xs text-red-700">Loket belum memiliki penugasan layanan.</span>
+                    @endif
                 </section>
 
                 {{-- Active Ticket Card --}}
@@ -77,13 +82,14 @@
                         {{ $activeQueue?->service?->name ?? 'Belum ada antrean yang dipanggil' }}
                     </div>
                     <div class="mt-3 flex flex-col items-center gap-1.5">
-                        <span id="active-status-badge">
+                        <span id="active-status-badge" class="inline-flex items-center gap-1.5 text-xs font-semibold {{ $isServing ? 'text-[#15803D]' : ($isCalling ? 'text-[#C2410C]' : 'text-[#64748B]') }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $isServing ? 'bg-[#15803D]' : ($isCalling ? 'bg-[#C2410C]' : 'bg-[#64748B]') }}" aria-hidden="true"></span>
                             @if($isServing)
-                                <x-badge tone="green">Sedang Dilayani</x-badge>
+                                <span>Sedang Dilayani</span>
                             @elseif($isCalling)
-                                <x-badge tone="orange">Sedang Dipanggil</x-badge>
+                                <span>Sedang Dipanggil</span>
                             @else
-                                <x-badge tone="neutral">Kosong</x-badge>
+                                <span>Kosong</span>
                             @endif
                         </span>
                         @if($isCalling)
@@ -142,7 +148,7 @@
                     <section class="bg-white rounded-xl border border-[#DCE3EC] p-5">
                         <div class="flex items-center justify-between mb-2">
                             <h2 class="text-xs font-semibold uppercase tracking-wider text-[#475569]">Antrean Terlewat Hari Ini</h2>
-                            <x-badge tone="orange" class="tabular-nums-strict">{{ $skippedQueues->count() }}</x-badge>
+                            <span class="text-xs font-bold text-[#C2410C] tabular-nums-strict">{{ $skippedQueues->count() }}</span>
                         </div>
                         <p class="text-[11px] text-[#64748B] mb-3">Dapat dipanggil kembali satu kali ke urutan paling depan:</p>
                         <div class="space-y-2 max-h-52 overflow-y-auto">
@@ -172,7 +178,7 @@
                         <h2 id="guestbook-heading" class="text-lg font-bold text-[#0F172A]">Formulir Buku Tamu Digital PST</h2>
                         <p class="text-xs text-[#475569] mt-0.5">Wajib diisi dan disimpan saat melayani pengunjung sebelum menyelesaikan antrean</p>
                     </div>
-                    <x-badge tone="neutral">SKF-05 BPS Terpadu</x-badge>
+                    <span class="text-xs font-mono font-semibold text-[#64748B]">SKF-05 BPS Terpadu</span>
                 </div>
 
                 {{-- Focusable Validation Error Summary --}}

@@ -58,9 +58,10 @@
                                 <td class="py-3.5 px-4 text-center font-mono text-xs font-semibold tabular-nums-strict">{{ $s->order_priority }}</td>
                                 <td class="py-3.5 px-4 text-center font-mono text-xs font-bold text-[#0A2540] tabular-nums-strict">{{ $s->queues_count }}</td>
                                 <td class="py-3.5 px-4 text-center">
-                                    <x-badge :tone="$s->is_active ? 'green' : 'neutral'">
-                                        {{ $s->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </x-badge>
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold {{ $s->is_active ? 'text-[#15803D]' : 'text-[#64748B]' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $s->is_active ? 'bg-[#15803D]' : 'bg-[#64748B]' }}" aria-hidden="true"></span>
+                                        <span>{{ $s->is_active ? 'Aktif' : 'Nonaktif' }}</span>
+                                    </span>
                                 </td>
                                 <td class="py-3.5 px-4 text-center">
                                     <div class="inline-flex items-center justify-center gap-2">

@@ -4,10 +4,10 @@
 
 @php
     $servicePalette = [
-        'A' => ['bar' => 'border-l-[#0B4F9C]', 'badge' => 'bg-[#0B4F9C] text-white', 'tag' => 'text-[#0B4F9C] bg-blue-50 border-blue-200'],
-        'B' => ['bar' => 'border-l-[#15803D]', 'badge' => 'bg-[#15803D] text-white', 'tag' => 'text-[#15803D] bg-emerald-50 border-emerald-200'],
-        'C' => ['bar' => 'border-l-[#C2410C]', 'badge' => 'bg-[#C2410C] text-white', 'tag' => 'text-[#C2410C] bg-orange-50 border-orange-200'],
-        'D' => ['bar' => 'border-l-[#0F766E]', 'badge' => 'bg-[#0F766E] text-white', 'tag' => 'text-[#0F766E] bg-teal-50 border-teal-200'],
+        'A' => ['badge' => 'bg-[#0B4F9C] text-white', 'label' => 'text-[#0B4F9C]'],
+        'B' => ['badge' => 'bg-[#15803D] text-white', 'label' => 'text-[#15803D]'],
+        'C' => ['badge' => 'bg-[#C2410C] text-white', 'label' => 'text-[#C2410C]'],
+        'D' => ['badge' => 'bg-[#0F766E] text-white', 'label' => 'text-[#0F766E]'],
     ];
 @endphp
 
@@ -50,18 +50,15 @@
                 <button type="button"
                         id="btn-service-{{ $service->id }}"
                         data-service-id="{{ $service->id }}"
-                        class="service-btn group w-full min-h-[144px] rounded-2xl border border-[#DCE3EC] border-l-4 {{ $tone['bar'] }} bg-white p-6 text-left transition-colors hover:border-[#0B4F9C] hover:bg-[#F8FAFC] active:bg-[#EDF1F6] flex items-center gap-5">
-                    <span class="w-20 h-20 rounded-xl {{ $tone['badge'] }} flex items-center justify-center font-mono font-bold text-4xl shrink-0 tabular-nums-strict">
+                        class="service-btn group w-full min-h-[144px] rounded-xl border border-[#CBD5E1] bg-white p-6 text-left transition-colors hover:border-[#0B4F9C] hover:bg-[#F8FAFC] active:bg-[#EDF1F6] flex items-center gap-5">
+                    <span class="w-20 h-20 rounded-lg {{ $tone['badge'] }} flex items-center justify-center font-mono font-bold text-4xl shrink-0 tabular-nums-strict">
                         {{ $service->code_prefix }}
                     </span>
                     <span class="min-w-0 flex-1">
-                        <span class="inline-block rounded-md border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider {{ $tone['tag'] }}">
-                            Layanan {{ $service->code_prefix }}
-                        </span>
-                        <span class="block text-xl font-bold text-[#0F172A] mt-2">
+                        <span class="block text-xl font-bold text-[#0F172A]">
                             {{ $service->name }}
                         </span>
-                        <span class="block text-xs sm:text-sm text-[#475569] mt-1 line-clamp-2">
+                        <span class="block text-xs sm:text-sm text-[#475569] mt-1.5 line-clamp-2">
                             {{ $service->description ?? 'Layanan konsultasi dan informasi statistik terpadu.' }}
                         </span>
                     </span>
@@ -77,7 +74,10 @@
     <footer class="bg-white border-t border-[#DCE3EC] py-3.5 px-6 text-xs text-[#475569]">
         <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
             <span>© 2026 Badan Pusat Statistik Kota Tasikmalaya · Pelayanan Statistik Terpadu</span>
-            <x-badge tone="green">Anjungan Siap Operasional</x-badge>
+            <span class="inline-flex items-center gap-1.5 font-semibold text-[#15803D]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#15803D]" aria-hidden="true"></span>
+                <span>Anjungan Siap Operasional</span>
+            </span>
         </div>
     </footer>
 

@@ -130,8 +130,8 @@
                                 <td class="py-3 px-4 font-semibold text-[#0F172A]">{{ $v->full_name }}</td>
                                 <td class="py-3 px-4 text-xs text-[#475569] tabular-nums-strict">{{ $v->phone_number }}</td>
                                 <td class="py-3 px-4 text-xs text-[#334155]">{{ $v->institution_name }}</td>
-                                <td class="py-3 px-4 whitespace-nowrap">
-                                    <x-badge tone="neutral">{{ $institutionLabels[$v->institution_type] ?? $v->institution_type }}</x-badge>
+                                <td class="py-3 px-4 text-xs font-medium text-[#334155] whitespace-nowrap">
+                                    {{ $institutionLabels[$v->institution_type] ?? $v->institution_type }}
                                 </td>
                                 <td class="py-3 px-4 text-xs font-mono text-[#475569] whitespace-nowrap tabular-nums-strict">
                                     {{ round(($v->queue->wait_duration_seconds ?? 0) / 60, 1) }}m /

@@ -12,7 +12,7 @@
     <div class="space-y-6">
         {{-- Default Password Security Notice --}}
         @if($isUsingDefaultPassword)
-            <div role="alert" class="rounded-xl border border-orange-200 border-l-4 border-l-[#C2410C] bg-orange-50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div role="alert" class="rounded-xl border border-orange-200 bg-orange-50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-start gap-3">
                     <x-icon name="warning" class="w-5 h-5 text-[#C2410C] shrink-0 mt-0.5" />
                     <div>
@@ -81,10 +81,10 @@
                 </div>
                 <div class="mt-4 pt-3 border-t border-[#EDF1F6] flex items-center justify-between text-xs tabular-nums-strict">
                     <span class="text-[#475569]">Bulan lalu: <strong class="text-[#0F172A]">{{ $prevMonthTotal }}</strong></span>
-                    <x-badge :tone="$diffTotal >= 0 ? 'green' : 'danger'">
+                    <span class="inline-flex items-center gap-1 font-semibold {{ $diffTotal >= 0 ? 'text-[#15803D]' : 'text-red-700' }}">
                         <x-icon :name="$diffTotal >= 0 ? 'arrow-up' : 'arrow-down'" class="w-3 h-3" />
                         <span>{{ $diffTotal >= 0 ? 'Naik +' : 'Turun ' }}{{ $growthRate }}%</span>
-                    </x-badge>
+                    </span>
                 </div>
             </div>
 
@@ -143,12 +143,9 @@
         {{-- Row 2: Daily Trend & Peak Hours --}}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <section class="lg:col-span-2 bg-white rounded-xl border border-[#DCE3EC] p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h2 class="text-sm font-bold text-[#0F172A]">Tren Volume Kunjungan Harian</h2>
-                        <p class="text-xs text-[#475569]">Pemohon per tanggal pada {{ $monthNames[$selectedMonth] }} {{ $selectedYear }}</p>
-                    </div>
-                    <x-badge tone="cobalt">Harian</x-badge>
+                <div class="mb-4">
+                    <h2 class="text-sm font-bold text-[#0F172A]">Tren Volume Kunjungan Harian</h2>
+                    <p class="text-xs text-[#475569]">Pemohon per tanggal pada {{ $monthNames[$selectedMonth] }} {{ $selectedYear }}</p>
                 </div>
                 <div class="h-64 relative">
                     <canvas id="trendChart"></canvas>
@@ -156,12 +153,9 @@
             </section>
 
             <section class="bg-white rounded-xl border border-[#DCE3EC] p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h2 class="text-sm font-bold text-[#0F172A]">Jam Sibuk Pelayanan</h2>
-                        <p class="text-xs text-[#475569]">Distribusi waktu kedatangan (WIB)</p>
-                    </div>
-                    <x-badge tone="orange">Peak Hours</x-badge>
+                <div class="mb-4">
+                    <h2 class="text-sm font-bold text-[#0F172A]">Jam Sibuk Pelayanan</h2>
+                    <p class="text-xs text-[#475569]">Distribusi waktu kedatangan (WIB)</p>
                 </div>
                 <div class="h-64 relative">
                     <canvas id="busyHoursChart"></canvas>
@@ -222,8 +216,8 @@
                                 <td class="py-3 px-4 font-mono font-bold text-[#0A2540] whitespace-nowrap tabular-nums-strict">{{ $v->queue->ticket_code }}</td>
                                 <td class="py-3 px-4 font-semibold text-[#0F172A]">{{ $v->full_name }}</td>
                                 <td class="py-3 px-4 text-xs text-[#475569]">{{ $v->institution_name }}</td>
-                                <td class="py-3 px-4 whitespace-nowrap">
-                                    <x-badge tone="cobalt">{{ $v->queue->service?->name ?? '-' }}</x-badge>
+                                <td class="py-3 px-4 text-xs font-medium text-[#0B4F9C] whitespace-nowrap">
+                                    {{ $v->queue->service?->name ?? '-' }}
                                 </td>
                                 <td class="py-3 px-4 text-xs font-mono text-[#475569] whitespace-nowrap tabular-nums-strict">
                                     {{ round(($v->queue->serve_duration_seconds ?? 0) / 60, 1) }} mnt

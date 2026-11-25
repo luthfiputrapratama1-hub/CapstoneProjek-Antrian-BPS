@@ -53,14 +53,15 @@
                                 <td class="py-3.5 px-4 font-mono text-xs font-semibold text-[#334155]">{{ $u->username }}</td>
                                 <td class="py-3.5 px-4 text-xs text-[#475569]">{{ $u->email }}</td>
                                 <td class="py-3.5 px-4 text-center">
-                                    <x-badge :tone="$u->role === 'admin' ? 'teal' : 'cobalt'">
+                                    <span class="text-xs font-bold uppercase tracking-wider {{ $u->role === 'admin' ? 'text-[#0F766E]' : 'text-[#0B4F9C]' }}">
                                         {{ strtoupper($u->role) }}
-                                    </x-badge>
+                                    </span>
                                 </td>
                                 <td class="py-3.5 px-4 text-center">
-                                    <x-badge :tone="$u->is_active ? 'green' : 'danger'">
-                                        {{ $u->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </x-badge>
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold {{ $u->is_active ? 'text-[#15803D]' : 'text-red-700' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $u->is_active ? 'bg-[#15803D]' : 'bg-red-600' }}" aria-hidden="true"></span>
+                                        <span>{{ $u->is_active ? 'Aktif' : 'Nonaktif' }}</span>
+                                    </span>
                                 </td>
                                 <td class="py-3.5 px-4 text-center">
                                     <div class="inline-flex items-center justify-center gap-2">

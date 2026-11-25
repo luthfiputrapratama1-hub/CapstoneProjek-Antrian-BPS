@@ -52,21 +52,24 @@
                                 </td>
                                 <td class="py-3.5 px-4 font-semibold text-[#0F172A]">{{ $c->name }}</td>
                                 <td class="py-3.5 px-4">
-                                    <div class="flex flex-wrap gap-1.5">
-                                        @forelse($c->services as $srv)
-                                            <x-badge tone="neutral">
-                                                <span class="font-mono font-bold text-[#0B4F9C]">{{ $srv->code_prefix }}</span>
-                                                <span>{{ $srv->name }}</span>
-                                            </x-badge>
-                                        @empty
-                                            <span class="text-xs text-red-700">Belum ada penugasan layanan</span>
-                                        @endforelse
-                                    </div>
+                                    @if($c->services->isNotEmpty())
+                                        <ul class="space-y-0.5 text-xs text-[#334155]">
+                                            @foreach($c->services as $srv)
+                                                <li>
+                                                    <span class="font-mono font-bold text-[#0B4F9C] mr-1">{{ $srv->code_prefix }}</span>
+                                                    <span>{{ $srv->name }}</span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <span class="text-xs text-red-700">Belum ada penugasan layanan</span>
+                                    @endif
                                 </td>
                                 <td class="py-3.5 px-4 text-center">
-                                    <x-badge :tone="$c->is_active ? 'green' : 'neutral'">
-                                        {{ $c->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </x-badge>
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold {{ $c->is_active ? 'text-[#15803D]' : 'text-[#64748B]' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $c->is_active ? 'bg-[#15803D]' : 'bg-[#64748B]' }}" aria-hidden="true"></span>
+                                        <span>{{ $c->is_active ? 'Aktif' : 'Nonaktif' }}</span>
+                                    </span>
                                 </td>
                                 <td class="py-3.5 px-4 text-center">
                                     <div class="inline-flex items-center justify-center gap-2">

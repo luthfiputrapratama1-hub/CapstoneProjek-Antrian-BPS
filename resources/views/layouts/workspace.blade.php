@@ -60,7 +60,7 @@
                             <li>
                                 <a href="{{ route($item['route']) }}"
                                    @if($isCurrent) aria-current="page" @endif
-                                   class="block rounded-md px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap {{ $isCurrent ? 'bg-white text-[#0A2540] border-l-4 lg:border-l-0 lg:border-b-2 border-[#EA580C]' : 'text-slate-200 hover:bg-white/10 hover:text-white' }}">
+                                   class="block rounded-md px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap {{ $isCurrent ? 'bg-white text-[#0A2540]' : 'text-slate-200 hover:bg-white/10 hover:text-white' }}">
                                     {{ $item['label'] }}
                                 </a>
                             </li>

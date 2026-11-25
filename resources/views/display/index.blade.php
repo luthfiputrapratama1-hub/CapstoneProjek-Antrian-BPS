@@ -25,14 +25,14 @@
                 </button>
 
                 <div id="audio-active-badge"
-                     class="hidden items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-950/60 px-3 py-1.5 text-xs font-semibold text-emerald-300">
+                     class="hidden items-center gap-1.5 text-xs font-semibold text-emerald-300">
                     <x-icon name="volume-on" class="w-4 h-4" />
                     <span>Audio Aktif</span>
                 </div>
 
                 <span id="connection-status"
-                      class="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-950/60 px-3 py-1.5 text-xs font-semibold text-emerald-300">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400" aria-hidden="true"></span>
+                      class="inline-flex items-center gap-2 text-xs font-semibold text-emerald-300">
+                    <span class="w-2 h-2 rounded-full bg-current" aria-hidden="true"></span>
                     <span>SSE Terhubung</span>
                 </span>
 
@@ -54,25 +54,25 @@
                         <section id="counter-card-{{ $counter->counter_number }}"
                                  data-counter-card="{{ $counter->counter_number }}"
                                  aria-labelledby="counter-heading-{{ $counter->counter_number }}"
-                                 class="rounded-xl border border-[#1F2937] bg-[#111827] p-5 flex flex-col justify-between transition-colors">
-                            <div class="flex items-center justify-between gap-3">
+                                 class="rounded-xl border border-[#1F2937] bg-[#111827] p-6 flex flex-col transition-colors">
+                            <div class="flex items-center justify-between gap-3 pb-4 border-b border-[#1F2937]">
                                 <h2 id="counter-heading-{{ $counter->counter_number }}" class="text-lg font-bold tracking-wide text-slate-100 uppercase">
                                     {{ $counter->name }}
                                 </h2>
                                 <span id="counter-badge-{{ $counter->counter_number }}"
-                                      class="rounded-md border border-[#374151] bg-[#1F2937] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-300">
+                                      class="text-xs font-semibold uppercase tracking-wider text-slate-400">
                                     Menunggu
                                 </span>
                             </div>
 
-                            <div class="my-4 rounded-lg border border-[#1F2937] bg-[#090E17] py-6 px-4 text-center">
-                                <div class="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Nomor Antrean</div>
+                            <div class="flex-1 flex flex-col items-center justify-center py-6 px-3 text-center">
+                                <div class="text-xs font-semibold uppercase tracking-widest text-slate-400">Nomor Antrean</div>
                                 <div id="counter-ticket-{{ $counter->counter_number }}"
-                                     class="text-6xl xl:text-7xl font-mono font-bold text-[#F59E0B] my-2 tracking-wider tabular-nums-strict">
+                                     class="text-7xl xl:text-8xl font-mono font-bold text-[#F59E0B] my-4 tracking-wider tabular-nums-strict leading-none">
                                     ---
                                 </div>
                                 <div id="counter-service-{{ $counter->counter_number }}"
-                                     class="text-sm font-medium text-slate-300 truncate">
+                                     class="text-base font-medium text-slate-300 truncate max-w-full">
                                     Belum ada antrean
                                 </div>
                             </div>
@@ -89,10 +89,10 @@
                         @foreach($services as $srv)
                             <div id="service-card-{{ $srv->id }}" class="rounded-lg border border-[#1F2937] bg-[#090E17] px-3.5 py-2.5 flex items-center justify-between gap-2">
                                 <div class="min-w-0">
-                                    <span class="inline-block rounded bg-[#0B4F9C] px-1.5 py-0.5 font-mono text-[11px] font-bold text-white">
+                                    <span class="font-mono text-xs font-bold text-[#60A5FA]">
                                         {{ $srv->code_prefix }}
                                     </span>
-                                    <div class="text-xs font-medium text-slate-300 truncate mt-1" title="{{ $srv->name }}">
+                                    <div class="text-xs font-medium text-slate-300 truncate mt-0.5" title="{{ $srv->name }}">
                                         {{ $srv->name }}
                                     </div>
                                 </div>
@@ -122,10 +122,10 @@
                                 <div class="text-xs text-slate-300 truncate">{{ $rq->service?->name ?? 'Layanan PST' }}</div>
                             </div>
                             <div class="text-right shrink-0">
-                                <span class="inline-block rounded-md border border-blue-500/30 bg-blue-950/70 px-2.5 py-1 text-xs font-semibold text-blue-200">
+                                <span class="text-xs font-semibold text-slate-200">
                                     {{ $rq->counter?->name ?? 'Loket' }}
                                 </span>
-                                <div class="text-[11px] font-mono text-slate-400 mt-1 tabular-nums-strict">{{ $rq->updated_at->format('H:i') }} WIB</div>
+                                <div class="text-[11px] font-mono text-slate-400 mt-0.5 tabular-nums-strict">{{ $rq->updated_at->format('H:i') }} WIB</div>
                             </div>
                         </div>
                     @empty
@@ -352,13 +352,13 @@
             if (!badgeEl) return;
             if (status === 'calling') {
                 badgeEl.textContent = 'Dipanggil';
-                badgeEl.className = 'rounded-md border border-red-500/60 bg-red-600 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white';
+                badgeEl.className = 'text-xs font-bold uppercase tracking-wider text-red-400';
             } else if (status === 'serving') {
                 badgeEl.textContent = 'Melayani';
-                badgeEl.className = 'rounded-md border border-blue-500/50 bg-[#0B4F9C] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white';
+                badgeEl.className = 'text-xs font-bold uppercase tracking-wider text-emerald-400';
             } else {
                 badgeEl.textContent = 'Menunggu';
-                badgeEl.className = 'rounded-md border border-[#374151] bg-[#1F2937] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-300';
+                badgeEl.className = 'text-xs font-semibold uppercase tracking-wider text-slate-400';
             }
         }
 
@@ -415,10 +415,10 @@
             const right = document.createElement('div');
             right.className = 'text-right shrink-0';
             const counterEl = document.createElement('span');
-            counterEl.className = 'inline-block rounded-md border border-blue-500/30 bg-blue-950/70 px-2.5 py-1 text-xs font-semibold text-blue-200';
+            counterEl.className = 'text-xs font-semibold text-slate-200';
             counterEl.textContent = counterName;
             const timeEl = document.createElement('div');
-            timeEl.className = 'text-[11px] font-mono text-slate-400 mt-1 tabular-nums-strict';
+            timeEl.className = 'text-[11px] font-mono text-slate-400 mt-0.5 tabular-nums-strict';
             timeEl.textContent = `${timeLabel} WIB`;
             right.append(counterEl, timeEl);
 
@@ -511,9 +511,9 @@
         function setConnectionStatus(mode, text) {
             if (!statusBadge) return;
             const styles = {
-                sse: 'inline-flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-950/60 px-3 py-1.5 text-xs font-semibold text-emerald-300',
-                reconnecting: 'inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-950/60 px-3 py-1.5 text-xs font-semibold text-amber-300',
-                polling: 'inline-flex items-center gap-1.5 rounded-md border border-blue-500/40 bg-blue-950/60 px-3 py-1.5 text-xs font-semibold text-blue-200',
+                sse: 'inline-flex items-center gap-2 text-xs font-semibold text-emerald-300',
+                reconnecting: 'inline-flex items-center gap-2 text-xs font-semibold text-amber-300',
+                polling: 'inline-flex items-center gap-2 text-xs font-semibold text-blue-300',
             };
             statusBadge.className = styles[mode] || styles.sse;
             const label = statusBadge.querySelector('span:last-child');
